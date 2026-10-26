@@ -1,0 +1,754 @@
+@font-face {
+  font-family: "Roc Grotesk";
+  src: url("../assets/RocGrotesk.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* =========================================================
+   HOME HERO
+   ========================================================= */
+
+.home-page {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #111;
+  color: #fff;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* =========================================================
+   FULL SCREEN HERO
+   ========================================================= */
+
+.home-hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  height: auto;
+  overflow: hidden;
+  background: #111;
+  z-index: 1;
+}
+
+/* =========================================================
+   ABOUT OVERLAPPING LAYER
+   ========================================================= */
+
+.home-about-layer {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 5;
+  background: #fff;
+  will-change: transform;
+}
+
+/* =========================================================
+   VIDEO
+   ========================================================= */
+
+.home-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  z-index: 0;
+  filter: blur(5px);
+  transform: scale(1.05);
+  animation:
+    heroVideoReveal 1.8s
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+/* =========================================================
+   VIDEO OVERLAY
+   ========================================================= */
+
+.home-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.28) 0%,
+      rgba(0, 0, 0, 0.05) 38%,
+      rgba(0, 0, 0, 0.32) 100%
+    );
+  pointer-events: none;
+}
+
+/* =========================================================
+   HERO CONTENT
+   ========================================================= */
+
+.home-hero-content {
+  position: relative;
+  z-index: 2;
+  width: min(1440px, calc(100% - 64px));
+  min-height: 100vh;
+  height: auto;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 150px 0 34px;
+  box-sizing: border-box;
+  transform:
+    translate(
+      var(--mouse-x, 0px),
+      var(--mouse-y, 0px)
+    );
+  transition:
+    transform 0.5s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* =========================================================
+   TEXT ANIMATION MASKS
+   Letters / words / lines rise out of these masks
+   (the movement itself is done by GSAP in Home.jsx).
+   ========================================================= */
+
+/* single line (labels, eyebrow) */
+.hero-line-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.25em 0;
+  margin: -0.25em 0;
+}
+
+.hero-line-inner {
+  display: block;
+  will-change: transform;
+}
+
+/* one letter of the big heading */
+.hero-char-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding: 0.08em 0.08em 0.12em 0.04em;
+  margin: -0.08em calc(-0.08em - 0.055em) -0.12em -0.04em;
+}
+
+.hero-char {
+  display: inline-block;
+  letter-spacing: 0;
+  will-change: transform;
+}
+
+/* one word of the description */
+.hero-word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
+}
+
+.hero-word {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* =========================================================
+   TOP INFORMATION
+   ========================================================= */
+
+.home-hero-top {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 18px;
+  font-family:
+    Inter,
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* the line under the labels draws itself (scaleX by GSAP) */
+.hero-top-line {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.home-hero-main {
+  width: min(100%, 980px);
+  margin-top: auto;
+  margin-bottom: auto;
+  padding-top: 50px;
+}
+
+/* =========================================================
+   EYEBROW
+   ========================================================= */
+
+.home-hero-eyebrow {
+  margin: 0 0 22px;
+  font-family:
+    Inter,
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* =========================================================
+   MAIN HEADING
+   ========================================================= */
+
+.home-hero-main h1 {
+  margin: 0;
+  font-family:
+    "Roc Grotesk",
+    Inter,
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size:
+    clamp(
+      4.8rem,
+      8vw,
+      8rem
+    );
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  color: white;
+}
+
+.home-hero-main h1 .hero-heading-word {
+  display: block;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+.home-hero-main h1 .hero-heading-second {
+  margin-left:
+    clamp(
+      35px,
+      8vw,
+      150px
+    );
+}
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.home-hero-description {
+  width: min(440px, 100%);
+  margin:
+    46px
+    0
+    0
+    clamp(
+      35px,
+      8vw,
+      150px
+    );
+  font-family:
+    Inter,
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: #fff;
+}
+
+/* =========================================================
+   HERO BUTTONS
+   ========================================================= */
+
+.home-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left:
+    clamp(
+      35px,
+      8vw,
+      150px
+    );
+  margin-top: 28px;
+}
+
+.hero-button {
+  position: relative;
+  min-width: 150px;
+  height: 52px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  overflow: hidden;
+  font-family:
+    Inter,
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  --magnetic-x: 0px;
+  --magnetic-y: 0px;
+  transform:
+    translate(
+      var(--magnetic-x),
+      var(--magnetic-y)
+    );
+  transition:
+    transform 0.25s
+    cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+.hero-button span {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-button::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0;
+  border-radius:
+    50% 50% 0 0;
+  transition:
+    height 0.5s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* =========================================================
+   PRIMARY
+   ========================================================= */
+
+.hero-button-primary {
+  background: #fff;
+  color: #111;
+  border: 1px solid #fff;
+}
+
+.hero-button-primary::before {
+  background: #D60001;
+}
+
+/* =========================================================
+   SECONDARY
+   ========================================================= */
+
+.hero-button-secondary {
+  background: transparent;
+  color: #fff;
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.8);
+}
+
+.hero-button-secondary::before {
+  background: #D60001;
+}
+
+.hero-button-secondary:hover {
+  color: #fff;
+}
+
+/* =========================================================
+   BUTTON HOVER
+   ========================================================= */
+
+.hero-button:hover {
+  transform:
+    translate(
+      var(--magnetic-x),
+      calc(var(--magnetic-y) - 4px)
+    );
+}
+
+.hero-button:hover::before {
+  height: 180%;
+}
+
+.hero-button-primary:hover {
+  color: #fff;
+  border-color: #D60001;
+}
+
+.hero-button-secondary:hover {
+  border-color: #D60001;
+}
+
+.hero-button span:last-child {
+  font-size: 18px;
+  transition:
+    transform 0.4s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-button:hover span:last-child {
+  transform:
+    translate(
+      3px,
+      -3px
+    );
+}
+
+/* =========================================================
+   BOTTOM
+   ========================================================= */
+
+.home-hero-bottom {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-family:
+    Inter,
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.hero-scroll-label {
+  white-space: nowrap;
+}
+
+.hero-scroll-line {
+  width: 70px;
+  height: 1px;
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.65
+    );
+}
+
+.hero-scroll-arrow {
+  font-size: 17px;
+  line-height: 1;
+  animation:
+    scrollArrow 1.6s
+    ease-in-out
+    infinite;
+}
+
+/* =========================================================
+   ENTRANCE ANIMATIONS (video + scroll arrow)
+   The text animation is done by GSAP in Home.jsx
+   ========================================================= */
+
+@keyframes heroVideoReveal {
+  from {
+    opacity: 0;
+    transform:
+      scale(1.1);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      scale(1.05);
+  }
+}
+
+@keyframes scrollArrow {
+  0%,
+  100% {
+    transform:
+      translateY(0);
+  }
+
+  50% {
+    transform:
+      translateY(5px);
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
+  .home-hero-content {
+    width:
+      calc(100% - 44px);
+    padding-top: 135px;
+  }
+
+  .home-hero-main h1 {
+    font-size:
+      clamp(
+        4.5rem,
+        10vw,
+        7rem
+      );
+  }
+
+  .home-hero-description {
+    margin-left:
+      clamp(
+        25px,
+        6vw,
+        90px
+      );
+  }
+
+  .home-hero-actions {
+    margin-left:
+      clamp(
+        25px,
+        6vw,
+        90px
+      );
+  }
+}
+
+/* =========================================================
+   MOBILE
+   The hero is shorter here (not a full tall screen), so it
+   feels wide and balanced instead of stretched.
+   ========================================================= */
+
+@media (max-width: 720px) {
+
+  .home-hero {
+    min-height: clamp(560px, 82dvh, 720px);
+    height: auto;
+    overflow: hidden;
+  }
+
+  .home-about-layer {
+    min-height: 100dvh;
+  }
+
+  .home-hero-video {
+    object-position: 70% center;
+    filter: blur(5px);
+    transform: scale(1.05);
+  }
+
+  .home-hero-content {
+    width:
+      calc(100% - 36px);
+    min-height: clamp(560px, 82dvh, 720px);
+    height: auto;
+    padding:
+      92px
+      0
+      46px;
+    transform: none;
+  }
+
+  .home-hero-top {
+    font-size: 10px;
+    padding-bottom: 14px;
+  }
+
+  .home-hero-top .hero-top-right {
+    display: none;
+  }
+
+  .home-hero-main {
+    padding-top: 24px;
+  }
+
+  .home-hero-eyebrow {
+    font-size: 11px;
+    margin-bottom: 18px;
+  }
+
+  .home-hero-main h1 {
+    font-size:
+      clamp(
+        4rem,
+        16vw,
+        6.5rem
+      );
+    line-height: 0.9;
+  }
+
+  .home-hero-main h1 .hero-heading-second {
+    margin-left: 24px;
+  }
+
+  .home-hero-description {
+    margin:
+      26px
+      0
+      0
+      24px;
+    max-width: 320px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.55;
+  }
+
+  .home-hero-actions {
+    margin:
+      22px
+      0
+      0
+      24px;
+    flex-wrap: wrap;
+  }
+
+  .hero-button {
+    min-width: 135px;
+    height: 48px;
+    padding: 0 18px;
+    font-size: 13px;
+  }
+
+  .home-hero-bottom {
+    font-size: 9px;
+    gap: 10px;
+  }
+
+  .hero-scroll-line {
+    width: 40px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+  .home-hero-content {
+    width:
+      calc(100% - 28px);
+    padding-bottom: 44px;
+  }
+
+  .home-hero-main h1 {
+    font-size:
+      clamp(
+        3.7rem,
+        15vw,
+        5.3rem
+      );
+  }
+
+  .home-hero-description {
+    margin-left: 18px;
+  }
+
+  .home-hero-actions {
+    margin-left: 18px;
+  }
+
+  .hero-button {
+    min-width: 125px;
+  }
+
+  .home-hero-bottom {
+    gap: 8px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .home-hero-video,
+  .home-hero-content,
+  .hero-scroll-arrow {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1;
+    clip-path: none;
+    filter: none;
+    transform: none;
+  }
+
+  .hero-line-inner,
+  .hero-char,
+  .hero-word {
+    transform: none !important;
+  }
+}
+
+/* =========================================================
+   HIDE SCROLLBAR — KEEP SCROLLING ENABLED
+   ========================================================= */
+
+html,
+body,
+#root {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+.home-page::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* =========================================================
+   LOCOMOTIVE SCROLL CONTAINER
+========================================================= */
+
+.home-page {
+  width: 100%;
+  min-height: 100vh;
+}

@@ -1,0 +1,893 @@
+/* =========================================================
+   SMOOTH SCROLL (Locomotive Scroll v5 / Lenis)
+========================================================= */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+.skills-page {
+  /* one heading size for both headings (responsive, see media queries) */
+  --heading-size: clamp(56px, 9.2vw, 145px);
+
+  position: relative;
+  width: 100%;
+  background:#DFDDDC;
+  color: #111;
+  overflow-x: clip;
+  background-image:
+    linear-gradient(rgba(17, 17, 17, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 17, 17, 0.045) 1px, transparent 1px);
+  background-size: 39.84px 39.84px;
+}
+
+/* =========================================================
+   100% SCREEN = 80% LOOK (DESKTOP)
+   Applies to the whole WORK section (skills + projects).
+   Phones and tablets are left untouched.
+   If you change 0.8 here, change DESKTOP_ZOOM in Work.jsx too.
+========================================================= */
+
+@media (min-width: 1025px) {
+  .skills-page {
+    --heading-size: 145px;
+
+    zoom: 0.8;
+  }
+
+  .project-card-title {
+    font-size: 32px;
+  }
+}
+
+/* =========================================================
+   LOCOMOTIVE-STYLE HEADINGS
+   Both headings use .work-heading. Every line is:
+   .heading-drift (moves sideways on scroll)
+     > .heading-mask (hides the line before it slides up)
+       > .heading-line (the text)
+========================================================= */
+
+.work-heading {
+  margin: 0;
+  font-size: var(--heading-size);
+  line-height: 0.78;
+  letter-spacing: -0.085em;
+  font-weight: 900;
+}
+
+.heading-drift {
+  display: block;
+  will-change: transform;
+}
+
+.heading-drift + .heading-drift {
+  margin-top: 12px;
+}
+
+.heading-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.14em 0.06em 0.08em;
+  margin: -0.14em -0.06em -0.08em;
+}
+
+.heading-line {
+  display: block;
+  will-change: transform;
+}
+
+.heading-line-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px #171717;
+}
+
+/* =========================================================
+   SKILLS SECTION
+========================================================= */
+
+.skills-section {
+  position: relative;
+  width: 100%;
+}
+
+.skills-inner {
+  width: 100%;
+  max-width: calc(979.4px + 10.5%);
+  margin: 0 auto;
+  padding: 120px 5.25% 100px;
+  box-sizing: border-box;
+}
+
+.skills-header {
+  position: relative;
+  margin-bottom: 70px;
+}
+
+.skills-eyebrow {
+  margin: 0 0 24px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.skills-intro {
+  max-width: 420px;
+  margin: 35px 0 0 auto;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #444;
+}
+
+.skills-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 42px;
+}
+
+.skills-group {
+  min-width: 0;
+  padding: 25px 0 30px;
+  border-top: 1px solid rgba(17, 17, 17, 0.24);
+}
+
+.skills-group-title {
+  margin: 0 0 22px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-chip {
+  display: inline-flex;
+}
+
+.skill-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.skill-item:hover {
+  background: #fff;
+  border-color: rgba(17, 17, 17, 0.4);
+  transform: translateY(-3px);
+}
+
+.skill-icon {
+  flex: 0 0 auto;
+  font-size: 17px;
+}
+
+/* =========================================================
+   WHAT I'VE BUILT
+========================================================= */
+
+.work-stack-section {
+  position: relative;
+  width: 100%;
+  padding: 105px 0 45px;
+  overflow: hidden;
+  border-top: 1px solid rgba(17, 17, 17, 0.15);
+}
+
+.work-stack-inner {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.work-stack-heading-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 0 5.25%;
+  margin-bottom: 62px;
+}
+
+.work-stack-intro {
+  flex: 0 1 275px;
+  min-width: 200px;
+  padding-bottom: 2px;
+}
+
+.work-stack-kicker {
+  margin: 0 0 13px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.work-stack-description {
+  max-width: 275px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #4d4d4d;
+}
+
+/* =========================================================
+   FAN STAGE (DESKTOP / TABLET / MOBILE)
+   Cards are positioned by Framer Motion (x / y / rotate / scale).
+   --fan-card-w is also set from JS so both always agree.
+========================================================= */
+
+.work-stage {
+  position: relative;
+  width: 100%;
+}
+
+.project-fan {
+  --fan-card-w: clamp(260px, 24vw, 340px);
+  --fan-card-h: calc(var(--fan-card-w) / 1.18 + 240px);
+
+  position: relative;
+  width: 100%;
+  height: calc(var(--fan-card-h) + 150px);
+  margin-top: 10px;
+}
+
+.fan-item {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  display: block;
+  width: var(--fan-card-w);
+  height: var(--fan-card-h);
+  margin-left: calc(var(--fan-card-w) / -2);
+  color: inherit;
+  text-decoration: none;
+  transform-origin: 50% 100%;
+  will-change: transform;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fan-item-link {
+  cursor: pointer;
+}
+
+.fan-item-locked {
+  cursor: default;
+}
+
+.fan-item-link:hover,
+.fan-item-link:focus-visible {
+  z-index: 50 !important;
+}
+
+.fan-item-link:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 6px;
+  border-radius: 28px;
+}
+
+/* =========================================================
+   PROJECT CARDS
+========================================================= */
+
+.project-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(17, 17, 17, 0.09);
+  border-radius: 25px;
+  background: #fff;
+  color: #111;
+  isolation: isolate;
+  box-shadow: 0 5px 20px rgba(17, 17, 17, 0.035);
+  will-change: transform;
+  transition:
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.project-card:hover {
+  border-color: rgba(17, 17, 17, 0.25);
+  box-shadow: 0 18px 45px rgba(17, 17, 17, 0.12);
+}
+
+.project-card-visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.18 / 1;
+  overflow: hidden;
+  background: #f6f5f1;
+}
+
+.project-image-composition {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #c9edb3;
+}
+
+.project-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #41a75a;
+  box-shadow: 0 0 0 3px rgba(65, 167, 90, 0.13);
+}
+
+/* =========================================================
+   SPIDERVILLE CARD: cream background + logo only
+========================================================= */
+
+.project-card-spider,
+.project-card-spider .project-card-visual,
+.project-card-spider .project-image-composition,
+.project-card-spider .project-card-info {
+  background: #FFFEF9;
+}
+
+.project-logo-wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 14%;
+}
+
+.project-logo {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* LIVE badge in the top-left corner of the SpiderVille card */
+.project-status-corner {
+  position: absolute;
+  z-index: 5;
+  top: 17px;
+  left: 17px;
+  margin-top: 0;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+/* =========================================================
+   LOCKED CARDS
+   Only the status text is shown (COMING SOON / SOMETHING NEW).
+========================================================= */
+
+.project-card-locked {
+  align-items: flex-start;
+  padding: 22px 23px;
+  border-color: transparent;
+  cursor: default;
+}
+
+.project-card-locked:hover {
+  border-color: transparent;
+  box-shadow: 0 5px 20px rgba(17, 17, 17, 0.035);
+}
+
+.locked-status {
+  position: relative;
+  z-index: 2;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.locked-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 34px;
+  transform: translate(-50%, -50%);
+}
+
+/* =========================================================
+   PROJECT CARD DETAILS
+========================================================= */
+
+.project-card-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 22px 23px 24px;
+  background: #fff;
+}
+
+.project-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 19px;
+}
+
+.project-card-category {
+  font-size: 9px;
+  line-height: 1.4;
+  font-weight: 800;
+  letter-spacing: 0.085em;
+  color: #777;
+}
+
+.project-card-number {
+  font-size: 10px;
+  font-weight: 700;
+  color: #888;
+}
+
+.project-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.project-card-title {
+  margin: 0;
+  font-size: clamp(24px, 2.2vw, 34px);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  overflow-wrap: anywhere;
+}
+
+.project-card-arrow {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 37px;
+  flex: 0 0 37px;
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  border-radius: 50%;
+  font-size: 13px;
+  transition:
+    color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.project-card:hover .project-card-arrow {
+  color: #fff;
+  background: #111;
+  transform: rotate(45deg);
+}
+
+.project-card-description {
+  max-width: 330px;
+  min-height: 43px;
+  margin: 15px 0 20px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #666;
+}
+
+.project-card-status {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.project-status-live {
+  background: #e6f5df;
+  color: #235a2d;
+}
+
+.project-status-live .project-live-dot {
+  width: 6px;
+  height: 6px;
+  flex-basis: 6px;
+  box-shadow: none;
+}
+
+.work-stack-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 5px 5.25% 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(17, 17, 17, 0.18);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #666;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+  .project-fan {
+    --fan-card-w: clamp(200px, 27vw, 260px);
+  }
+
+  .project-card-description {
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 900px) {
+  .skills-inner {
+    padding-top: 100px;
+    padding-bottom: 80px;
+  }
+
+  .skills-groups {
+    gap: 0 25px;
+  }
+
+  .work-stack-section {
+    padding-top: 85px;
+  }
+
+  .work-stack-heading-row {
+    gap: 25px;
+    margin-bottom: 45px;
+  }
+
+  .project-card-visual {
+    aspect-ratio: 1.12 / 1;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   Headings scale with the screen width. The project cards
+   use their own layout (see MOBILE PROJECTS below).
+========================================================= */
+
+@media (max-width: 700px) {
+  .skills-page {
+    --heading-size: clamp(40px, 13.4vw, 84px);
+  }
+
+  .heading-drift + .heading-drift {
+    margin-top: 8px;
+  }
+
+  .heading-line-outline {
+    -webkit-text-stroke-width: 1px;
+  }
+
+  .skills-inner {
+    padding: 90px 6vw 65px;
+  }
+
+  .skills-header {
+    margin-bottom: 48px;
+  }
+
+  .skills-eyebrow {
+    margin-bottom: 21px;
+    font-size: 10px;
+  }
+
+  .skills-intro {
+    max-width: 100%;
+    margin-top: 28px;
+    font-size: 13px;
+  }
+
+  .skills-groups {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .skills-group {
+    padding: 23px 0 26px;
+  }
+
+  .skills-group-title {
+    margin-bottom: 17px;
+  }
+
+  .skills-list {
+    gap: 8px;
+  }
+
+  .skill-item {
+    min-height: 37px;
+    padding: 8px 11px;
+    font-size: 11px;
+  }
+
+  .skill-icon {
+    font-size: 15px;
+  }
+
+  .work-stack-section {
+    padding-top: 75px;
+    padding-bottom: 30px;
+  }
+
+  .work-stack-heading-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 0 6vw;
+    margin-bottom: 14px;
+  }
+
+  .work-stack-intro {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .work-stack-kicker {
+    margin-bottom: 9px;
+  }
+
+  .work-stack-description {
+    max-width: 260px;
+    font-size: 12px;
+  }
+
+  .work-stack-bottom {
+    margin-right: 6vw;
+    margin-left: 6vw;
+    font-size: 8px;
+    letter-spacing: 0.06em;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+  .skills-page {
+    --heading-size: clamp(36px, 13vw, 52px);
+  }
+}
+
+/* =========================================================
+   MOBILE PROJECTS: 3D COVERFLOW CAROUSEL
+   Focused card in the middle, tilted neighbours at the sides.
+   Card height = image area + fixed info area, so all cards match.
+========================================================= */
+
+.m-cf {
+  width: 100%;
+  padding-bottom: 4px;
+  box-sizing: border-box;
+}
+
+/* all cards share one grid cell, so the stage is exactly as tall as the
+   tallest card (no fixed height, no blank space) */
+.m-cf-stage {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  padding: 6px 0 22px;
+  perspective: 1100px;
+  touch-action: pan-y;
+}
+
+.m-cf-card {
+  grid-area: 1 / 1;
+  width: var(--cf-w);
+  min-width: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+
+.m-cf-card.is-hidden {
+  pointer-events: none;
+}
+
+.m-cf-card img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.m-cf-card .project-card {
+  border-radius: 28px;
+  box-shadow:
+    0 26px 46px -24px rgba(17, 17, 17, 0.38),
+    0 6px 16px rgba(17, 17, 17, 0.06);
+}
+
+.m-cf-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.m-cf-card .project-card-visual {
+  aspect-ratio: 1.12 / 1;
+}
+
+.m-cf-card .project-card-info {
+  padding: 20px 20px 20px;
+}
+
+.m-cf-card .project-card-title {
+  font-size: 28px;
+}
+
+.m-cf-card .project-card-description {
+  max-width: none;
+  min-height: 0;
+  font-size: 12.5px;
+}
+
+/* locked cards: status, centered lock, big number, soft light */
+.m-cf-locked {
+  min-height: 300px;
+  padding: 22px 22px;
+}
+
+.m-cf-locked::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      110% 70% at 0% 0%,
+      rgba(255, 255, 255, 0.36),
+      transparent 60%
+    ),
+    linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.12));
+  pointer-events: none;
+}
+
+.m-cf-locked .locked-icon {
+  width: 92px;
+  height: 92px;
+  font-size: 32px;
+  backdrop-filter: blur(6px);
+}
+
+.m-cf-number {
+  position: absolute;
+  left: 20px;
+  bottom: 18px;
+  z-index: 2;
+  font-size: clamp(84px, 28vw, 130px);
+  line-height: 0.78;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+}
+
+/* arrows + dots */
+.m-cf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.m-cf-arrow {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(17, 17, 17, 0.4);
+  border-radius: 50%;
+  background: transparent;
+  color: #111;
+  font-family: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.m-cf-arrow:active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.m-cf-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.m-cf-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.25);
+  cursor: pointer;
+  transition:
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s ease;
+}
+
+.m-cf-dot::before {
+  content: "";
+  position: absolute;
+  inset: -10px -4px;
+}
+
+.m-cf-dot.is-active {
+  width: 22px;
+  background: #111;
+}
+
+@media (max-width: 380px) {
+  .m-cf-card .project-card-title {
+    font-size: 25px;
+  }
+
+  .m-cf-card .project-card-info {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card,
+  .project-card *,
+  .skill-item {
+    transition-duration: 0.01ms !important;
+  }
+}

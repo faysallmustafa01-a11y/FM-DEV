@@ -1,0 +1,688 @@
+/* =========================================================
+   CONTACT PAGE
+   All classes are prefixed (ct-)
+========================================================= */
+
+.contact-page {
+  /* --k = desktop scale. On desktop (>950px) everything is sized
+     like the old 75% browser zoom, so 100% now looks like 75% did.
+     Tablet / mobile stay at 1 (unchanged). */
+  --k: 1;
+
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+
+  /* SVG background (desktop version by default).
+     Red color stays as a fallback while the SVG loads. */
+  background-color: #D60000;
+
+  color: #fff;
+  overflow-x: clip;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (min-width: 951px) {
+  .contact-page {
+    --k: 0.75;
+  }
+}
+
+/* SVG background layer (desktop / mobile is switched in the JSX <picture>) */
+.ct-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ct-bg img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  user-select: none;
+}
+
+.contact-page *,
+.contact-page *::before,
+.contact-page *::after {
+  box-sizing: border-box;
+}
+
+.ct-scroll-container {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.ct-inner {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  max-width: none;
+  margin: 0 auto;
+  padding: calc(110px * var(--k)) 5.25vw calc(40px * var(--k));
+}
+
+/* =========================================================
+   HEADING
+========================================================= */
+
+.ct-header {
+  margin-bottom: calc(70px * var(--k));
+}
+
+.ct-eyebrow {
+  display: block;
+  margin-bottom: calc(18px * var(--k));
+  font-size: calc(11px * var(--k));
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.ct-title {
+  margin: 0;
+  font-size: clamp(calc(64px * var(--k)), 13vw, calc(190px * var(--k)));
+  line-height: 0.88;
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  color: #fff;
+  /* scroll-linked: heading drifts down slightly while scrolling */
+  transform: translate3d(0, min(calc(var(--sp, 0) * 0.1px), 36px), 0);
+  will-change: transform;
+}
+
+.ct-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.06em 0.04em 0.1em;
+  margin: -0.06em -0.04em -0.1em;
+}
+
+/* scroll-linked: "TALK" slides sideways while scrolling */
+.ct-mask-2 {
+  transform: translate3d(min(calc(var(--sp, 0) * 0.22px), 140px), 0, 0);
+  will-change: transform;
+}
+
+.ct-line {
+  display: block;
+  transform: translateY(115%);
+  transition: transform 1.1s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.ct-mask:nth-child(2) .ct-line {
+  transition-delay: 0.14s;
+}
+
+.ct-outline {
+  color: transparent;
+  -webkit-text-stroke: calc(2px * var(--k)) #fff;
+  letter-spacing: -0.04em;
+}
+
+.ct-ready .ct-line {
+  transform: translateY(0);
+}
+
+/* Letter-by-letter entrance (heading) */
+.ct-char {
+  display: inline-block;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.ct-ready .ct-char {
+  animation: ctCharIn 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(0.2s + var(--i, 0) * 0.07s);
+}
+
+@keyframes ctCharIn {
+  0% {
+    opacity: 0;
+    transform: translateY(70%) rotate(9deg) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+/* =========================================================
+   FADE-UP (scroll reveal)
+   JS adds .ct-in when the element enters the screen.
+   --dir lets repeating elements come from above or below.
+========================================================= */
+
+.ct-fade {
+  opacity: 0;
+  transform: translateY(calc(32px * var(--dir, 1)));
+  transition:
+    opacity 0.9s ease var(--d, 0s),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s);
+}
+
+.ct-fade.ct-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.ct-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: calc(80px * var(--k));
+  padding-top: calc(50px * var(--k));
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* =========================================================
+   LEFT: DETAILS
+========================================================= */
+
+.ct-info {
+  display: flex;
+  flex-direction: column;
+  gap: calc(44px * var(--k));
+  min-width: 0;
+}
+
+.ct-label {
+  display: block;
+  margin-bottom: calc(14px * var(--k));
+  font-size: calc(10px * var(--k));
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.ct-text {
+  max-width: calc(340px * var(--k));
+  margin: 0;
+  font-size: calc(18px * var(--k));
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* Availability animation */
+
+.ct-availability {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(11px * var(--k));
+}
+
+.ct-availability > span:last-child {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.65),
+    #ffffff,
+    rgba(255, 255, 255, 0.65)
+  );
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: ctAvailabilityShimmer 4s ease-in-out infinite;
+}
+
+.ct-availability-dot {
+  position: relative;
+  flex: 0 0 calc(8px * var(--k));
+  width: calc(8px * var(--k));
+  height: calc(8px * var(--k));
+  margin-top: calc(8px * var(--k));
+  border-radius: 50%;
+  background: #CDF0BD;
+  box-shadow: 0 0 0 0 rgba(205, 240, 189, 0.45);
+  animation: ctAvailabilityPulse 2s ease-out infinite;
+}
+
+@keyframes ctAvailabilityShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+@keyframes ctAvailabilityPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(205, 240, 189, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 calc(9px * var(--k)) rgba(205, 240, 189, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(205, 240, 189, 0);
+  }
+}
+
+.ct-email {
+  display: inline-block;
+  font-size: clamp(calc(22px * var(--k)), 2.6vw, calc(38px * var(--k)));
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+/* Email letters: wave in on scroll down AND scroll up */
+.ct-email-text {
+  display: inline-block;
+  min-width: 0;
+}
+
+.ct-ec {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(calc(60% * var(--dir, 1)));
+  transition:
+    opacity 0.5s ease calc(var(--d, 0s) + var(--i, 0) * 0.03s),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)
+      calc(var(--d, 0s) + var(--i, 0) * 0.03s);
+}
+
+.ct-in .ct-ec {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Links */
+
+.ct-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(8px * var(--k));
+  color: #fff;
+  text-decoration: none;
+}
+
+.ct-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.ct-link:hover::after,
+.ct-link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.ct-email.ct-link::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.ct-email.ct-link:hover::after {
+  transform: scaleX(0);
+  transform-origin: right center;
+}
+
+.ct-link:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 5px;
+}
+
+/* =========================================================
+   RIGHT: FORM
+========================================================= */
+
+.ct-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(34px * var(--k));
+  min-width: 0;
+}
+
+.ct-field {
+  position: relative;
+  min-width: 0;
+}
+
+.ct-field label {
+  display: block;
+  margin-bottom: calc(8px * var(--k));
+  font-size: calc(10px * var(--k));
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.ct-field input,
+.ct-field textarea {
+  display: block;
+  width: 100%;
+  padding: calc(8px * var(--k)) 0 calc(14px * var(--k));
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: clamp(calc(20px * var(--k)), 2.2vw, calc(28px * var(--k)));
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  outline: none;
+  resize: none;
+}
+
+.ct-field input::placeholder,
+.ct-field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* White underline grows on focus */
+
+.ct-field:has(input)::after,
+.ct-field:has(textarea)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+  pointer-events: none;
+}
+
+.ct-field:has(input:focus)::after,
+.ct-field:has(textarea:focus)::after {
+  transform: scaleX(1);
+}
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================================= */
+
+.ct-submit-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: calc(20px * var(--k));
+  margin-top: calc(6px * var(--k));
+}
+
+.ct-submit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(16px * var(--k));
+  padding: calc(18px * var(--k)) calc(30px * var(--k));
+  overflow: hidden;
+  border: 1px solid #fff;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: calc(15px * var(--k));
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* magnetic cursor pull (values set from JS) */
+  transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
+  will-change: transform;
+  transition: color 0.45s ease, scale 0.25s ease;
+}
+
+.ct-submit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #fff;
+  transform: translateX(-101%);
+  transition: transform 0.55s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.ct-submit:hover,
+.ct-submit:focus-visible {
+  color: #D60000;
+}
+
+.ct-submit:hover::before,
+.ct-submit:focus-visible::before {
+  transform: translateX(0);
+}
+
+.ct-submit:active {
+  scale: 0.97;
+}
+
+.ct-submit:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+/* label follows the cursor a little extra (inner parallax) */
+.ct-submit-text {
+  display: inline-block;
+  transform: translate3d(
+    calc(var(--mx, 0px) * 0.25),
+    calc(var(--my, 0px) * 0.25),
+    0
+  );
+}
+
+.ct-submit-arrow {
+  display: inline-block;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ct-submit:hover .ct-submit-arrow {
+  transform: translateX(calc(6px * var(--k)));
+}
+
+.ct-status {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: calc(13px * var(--k));
+  opacity: 0.85;
+}
+
+/* =========================================================
+   BOTTOM BAR
+========================================================= */
+
+.ct-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(15px * var(--k));
+  margin-top: calc(90px * var(--k));
+  padding-top: calc(20px * var(--k));
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: calc(10px * var(--k));
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.ct-bottom .ct-link {
+  font-size: calc(10px * var(--k));
+  letter-spacing: 0.14em;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 950px) {
+  .ct-inner {
+    padding-top: 100px;
+  }
+
+  .ct-header {
+    margin-bottom: 50px;
+  }
+
+  .ct-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 60px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+  .ct-inner {
+    padding: 90px 6vw 30px;
+  }
+
+  .ct-title {
+    font-size: clamp(56px, 20vw, 110px);
+  }
+
+  .ct-outline {
+    -webkit-text-stroke-width: 1.5px;
+  }
+
+  .ct-grid {
+    gap: 50px;
+    padding-top: 36px;
+  }
+
+  .ct-info {
+    gap: 34px;
+  }
+
+  .ct-form {
+    gap: 28px;
+  }
+
+  /* Easier to read on small screens */
+  .ct-eyebrow {
+    font-size: 12px;
+  }
+
+  .ct-label,
+  .ct-field label {
+    font-size: 11px;
+    opacity: 0.9;
+  }
+
+  .ct-text {
+    font-size: 17px;
+  }
+
+  .ct-availability > span:last-child {
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.85),
+      #ffffff,
+      rgba(255, 255, 255, 0.85)
+    );
+  }
+
+  .ct-field input::placeholder,
+  .ct-field textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Compact send button (no longer full width) */
+  .ct-submit-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .ct-submit {
+    width: auto;
+    padding: 14px 24px;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  .ct-status {
+    font-size: 14px;
+    opacity: 1;
+  }
+
+  .ct-bottom {
+    flex-wrap: wrap;
+    margin-top: 64px;
+    font-size: 11px;
+  }
+
+  .ct-bottom .ct-link {
+    font-size: 11px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-line,
+  .ct-fade,
+  .ct-char,
+  .ct-ec,
+  .ct-title,
+  .ct-mask-2 {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .ct-link::after,
+  .ct-submit::before,
+  .ct-field::after,
+  .ct-availability > span:last-child,
+  .ct-availability-dot {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+.ct-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.ct-status-loading {
+  opacity: 0.75;
+}
+
+.ct-status-success {
+  color: #d9f5cf;
+}
+
+.ct-status-error {
+  color: #ffe0df;
+}
