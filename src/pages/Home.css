@@ -752,3 +752,113 @@ body::-webkit-scrollbar,
   width: 100%;
   min-height: 100vh;
 }
+
+/* =========================================================
+   MOBILE PERFORMANCE + RESPONSIVE FIXES
+   Existing desktop design remains unchanged.
+   ========================================================= */
+
+/* Prevent accidental horizontal overflow */
+.home-page,
+.home-hero,
+.home-hero-content {
+  max-width: 100%;
+}
+
+/* Smoother video rendering on smaller screens */
+.home-hero-video {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Tablet and mobile */
+@media (max-width: 720px) {
+  .home-hero-video {
+    filter: none;
+    transform: scale(1.02);
+    object-position: 70% center;
+  }
+
+  .home-hero-content {
+    transition: none;
+    will-change: auto;
+  }
+
+  .home-hero-main h1 {
+    font-size: clamp(3rem, 13vw, 6.5rem);
+    overflow-wrap: normal;
+  }
+
+  .home-hero-main h1 .hero-heading-word {
+    max-width: 100%;
+  }
+
+  .home-hero-description {
+    width: auto;
+    max-width: min(320px, calc(100% - 24px));
+    font-size: clamp(14px, 3.8vw, 15px);
+  }
+
+  .home-hero-actions {
+    gap: 10px;
+  }
+
+  .hero-button {
+    touch-action: manipulation;
+  }
+
+  .hero-button:hover {
+    transform: none;
+  }
+
+  .hero-button:hover::before {
+    height: 0;
+  }
+
+  .hero-button span:last-child {
+    transition: none;
+  }
+
+  .hero-scroll-arrow {
+    animation-duration: 2.2s;
+  }
+}
+
+/* Very narrow phones */
+@media (max-width: 380px) {
+  .home-hero-main h1 {
+    font-size: clamp(2.7rem, 12.5vw, 3.7rem);
+    letter-spacing: -0.045em;
+  }
+
+  .home-hero-main h1 .hero-heading-second {
+    margin-left: 14px;
+  }
+
+  .home-hero-description,
+  .home-hero-actions {
+    margin-left: 14px;
+  }
+
+  .hero-button {
+    min-width: 0;
+    padding-inline: 14px;
+  }
+}
+
+/* Respect the device's reduced-motion setting */
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-video {
+    animation: none !important;
+  }
+
+  .hero-scroll-arrow {
+    animation: none !important;
+  }
+
+  .hero-button,
+  .hero-button::before,
+  .hero-button span:last-child {
+    transition: none !important;
+  }
+}

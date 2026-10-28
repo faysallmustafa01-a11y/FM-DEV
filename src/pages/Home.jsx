@@ -349,7 +349,7 @@ function Home() {
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
         />
 
         <div className="home-hero-overlay"></div>

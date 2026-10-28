@@ -32,7 +32,7 @@ const SOCIAL_LINKS = [
   },
   {
     label: "Instagram",
-    href: "https://www.instagram.com/your-username/",
+    href: "https://www.instagram.com/ffaaiissaall_?psln=Z3FyYzF0eWt1YWpn&utm_source=qr",
   },
   { label: "WhatsApp", href: "https://wa.me/923000000000" },
   { label: "Gmail", href: "mailto:m.fais.dev@gmail.com" },
