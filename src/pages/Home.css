@@ -1,3 +1,4 @@
+
 @font-face {
   font-family: "Roc Grotesk";
   src: url("../assets/RocGrotesk.woff2") format("woff2");
@@ -7,7 +8,7 @@
 }
 
 /* =========================================================
-   HOME HERO
+   HOME PAGE
    ========================================================= */
 
 .home-page {
@@ -19,6 +20,7 @@
   color: #fff;
   overflow-x: clip;
   overflow-y: visible;
+  max-width: 100%;
 }
 
 /* =========================================================
@@ -33,6 +35,7 @@
   overflow: hidden;
   background: #111;
   z-index: 1;
+  max-width: 100%;
 }
 
 /* =========================================================
@@ -63,10 +66,10 @@
   z-index: 0;
   filter: blur(5px);
   transform: scale(1.05);
-  animation:
-    heroVideoReveal 1.8s
-    cubic-bezier(0.22, 1, 0.36, 1)
-    both;
+  animation: heroVideoReveal 1.8s
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* =========================================================
@@ -77,13 +80,12 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.28) 0%,
-      rgba(0, 0, 0, 0.05) 38%,
-      rgba(0, 0, 0, 0.32) 100%
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.05) 38%,
+    rgba(0, 0, 0, 0.32) 100%
+  );
   pointer-events: none;
 }
 
@@ -103,23 +105,18 @@
   justify-content: space-between;
   padding: 150px 0 34px;
   box-sizing: border-box;
-  transform:
-    translate(
-      var(--mouse-x, 0px),
-      var(--mouse-y, 0px)
-    );
-  transition:
-    transform 0.5s
+  transform: translate(
+    var(--mouse-x, 0px),
+    var(--mouse-y, 0px)
+  );
+  transition: transform 0.5s
     cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* =========================================================
    TEXT ANIMATION MASKS
-   Letters / words / lines rise out of these masks
-   (the movement itself is done by GSAP in Home.jsx).
    ========================================================= */
 
-/* single line (labels, eyebrow) */
 .hero-line-mask {
   display: block;
   overflow: hidden;
@@ -132,7 +129,6 @@
   will-change: transform;
 }
 
-/* one letter of the big heading */
 .hero-char-mask {
   display: inline-block;
   overflow: hidden;
@@ -147,7 +143,6 @@
   will-change: transform;
 }
 
-/* one word of the description */
 .hero-word-mask {
   display: inline-block;
   overflow: hidden;
@@ -172,12 +167,7 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 18px;
-  font-family:
-    Inter,
-    "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -185,7 +175,6 @@
   color: #fff;
 }
 
-/* the line under the labels draws itself (scaleX by GSAP) */
 .hero-top-line {
   position: absolute;
   left: 0;
@@ -193,6 +182,7 @@
   width: 100%;
   height: 1px;
   background: rgba(255, 255, 255, 0.35);
+  transform-origin: left center;
 }
 
 /* =========================================================
@@ -212,12 +202,7 @@
 
 .home-hero-eyebrow {
   margin: 0 0 22px;
-  font-family:
-    Inter,
-    "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -231,39 +216,25 @@
 
 .home-hero-main h1 {
   margin: 0;
-  font-family:
-    "Roc Grotesk",
-    Inter,
-    "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif;
-  font-size:
-    clamp(
-      4.8rem,
-      8vw,
-      8rem
-    );
+  font-family: "Roc Grotesk", Inter, "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+  font-size: clamp(4.8rem, 8vw, 8rem);
   font-weight: 800;
   line-height: 0.88;
   letter-spacing: -0.055em;
   text-transform: uppercase;
-  color: white;
+  color: #fff;
 }
 
 .home-hero-main h1 .hero-heading-word {
   display: block;
   width: fit-content;
+  max-width: 100%;
   white-space: nowrap;
 }
 
 .home-hero-main h1 .hero-heading-second {
-  margin-left:
-    clamp(
-      35px,
-      8vw,
-      150px
-    );
+  margin-left: clamp(35px, 8vw, 150px);
 }
 
 /* =========================================================
@@ -272,21 +243,8 @@
 
 .home-hero-description {
   width: min(440px, 100%);
-  margin:
-    46px
-    0
-    0
-    clamp(
-      35px,
-      8vw,
-      150px
-    );
-  font-family:
-    Inter,
-    "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif;
+  margin: 46px 0 0 clamp(35px, 8vw, 150px);
+  font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 17px;
   font-weight: 600;
   line-height: 1.55;
@@ -301,48 +259,41 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left:
-    clamp(
-      35px,
-      8vw,
-      150px
-    );
+  margin-left: clamp(35px, 8vw, 150px);
   margin-top: 28px;
 }
 
 .hero-button {
   position: relative;
   min-width: 150px;
-  height: 52px;
+  min-height: 52px;
   padding: 0 22px;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 0;
   border-radius: 999px;
   text-decoration: none;
   overflow: hidden;
-  font-family:
-    Inter,
-    "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
   --magnetic-x: 0px;
   --magnetic-y: 0px;
-  transform:
-    translate(
-      var(--magnetic-x),
-      var(--magnetic-y)
-    );
+  transform: translate(
+    var(--magnetic-x),
+    var(--magnetic-y)
+  );
   transition:
-    transform 0.25s
-    cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
     color 0.3s ease,
     border-color 0.3s ease,
     background 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hero-button span {
@@ -357,15 +308,13 @@
   bottom: 0;
   width: 100%;
   height: 0;
-  border-radius:
-    50% 50% 0 0;
-  transition:
-    height 0.5s
+  border-radius: 50% 50% 0 0;
+  transition: height 0.5s
     cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* =========================================================
-   PRIMARY
+   PRIMARY BUTTON
    ========================================================= */
 
 .hero-button-primary {
@@ -379,15 +328,13 @@
 }
 
 /* =========================================================
-   SECONDARY
+   SECONDARY BUTTON
    ========================================================= */
 
 .hero-button-secondary {
   background: transparent;
   color: #fff;
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .hero-button-secondary::before {
@@ -403,11 +350,10 @@
    ========================================================= */
 
 .hero-button:hover {
-  transform:
-    translate(
-      var(--magnetic-x),
-      calc(var(--magnetic-y) - 4px)
-    );
+  transform: translate(
+    var(--magnetic-x),
+    calc(var(--magnetic-y) - 4px)
+  );
 }
 
 .hero-button:hover::before {
@@ -423,35 +369,15 @@
   border-color: #D60001;
 }
 
-.hero-button span:last-child {
-  font-size: 18px;
-  transition:
-    transform 0.4s
-    cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.hero-button:hover span:last-child {
-  transform:
-    translate(
-      3px,
-      -3px
-    );
-}
-
 /* =========================================================
-   BOTTOM
+   BOTTOM SCROLL INDICATOR
    ========================================================= */
 
 .home-hero-bottom {
   display: flex;
   align-items: center;
   gap: 15px;
-  font-family:
-    Inter,
-    "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.15em;
@@ -466,53 +392,40 @@
 .hero-scroll-line {
   width: 70px;
   height: 1px;
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.65
-    );
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.65);
 }
 
 .hero-scroll-arrow {
   font-size: 17px;
   line-height: 1;
-  animation:
-    scrollArrow 1.6s
-    ease-in-out
-    infinite;
+  animation: scrollArrow 1.6s ease-in-out infinite;
 }
 
 /* =========================================================
-   ENTRANCE ANIMATIONS (video + scroll arrow)
-   The text animation is done by GSAP in Home.jsx
+   ENTRANCE ANIMATIONS
    ========================================================= */
 
 @keyframes heroVideoReveal {
   from {
     opacity: 0;
-    transform:
-      scale(1.1);
+    transform: scale(1.1);
   }
 
   to {
     opacity: 1;
-    transform:
-      scale(1.05);
+    transform: scale(1.05);
   }
 }
 
 @keyframes scrollArrow {
   0%,
   100% {
-    transform:
-      translateY(0);
+    transform: translateY(0);
   }
 
   50% {
-    transform:
-      translateY(5px);
+    transform: translateY(5px);
   }
 }
 
@@ -521,49 +434,29 @@
    ========================================================= */
 
 @media (max-width: 1000px) {
-
   .home-hero-content {
-    width:
-      calc(100% - 44px);
+    width: calc(100% - 44px);
     padding-top: 135px;
   }
 
   .home-hero-main h1 {
-    font-size:
-      clamp(
-        4.5rem,
-        10vw,
-        7rem
-      );
+    font-size: clamp(4.5rem, 10vw, 7rem);
   }
 
   .home-hero-description {
-    margin-left:
-      clamp(
-        25px,
-        6vw,
-        90px
-      );
+    margin-left: clamp(25px, 6vw, 90px);
   }
 
   .home-hero-actions {
-    margin-left:
-      clamp(
-        25px,
-        6vw,
-        90px
-      );
+    margin-left: clamp(25px, 6vw, 90px);
   }
 }
 
 /* =========================================================
    MOBILE
-   The hero is shorter here (not a full tall screen), so it
-   feels wide and balanced instead of stretched.
    ========================================================= */
 
 @media (max-width: 720px) {
-
   .home-hero {
     min-height: clamp(560px, 82dvh, 720px);
     height: auto;
@@ -576,20 +469,18 @@
 
   .home-hero-video {
     object-position: 70% center;
-    filter: blur(5px);
-    transform: scale(1.05);
+    filter: none;
+    transform: scale(1.02);
   }
 
   .home-hero-content {
-    width:
-      calc(100% - 36px);
+    width: calc(100% - 36px);
     min-height: clamp(560px, 82dvh, 720px);
     height: auto;
-    padding:
-      92px
-      0
-      46px;
+    padding: 92px 0 46px;
     transform: none;
+    transition: none;
+    will-change: auto;
   }
 
   .home-hero-top {
@@ -611,13 +502,9 @@
   }
 
   .home-hero-main h1 {
-    font-size:
-      clamp(
-        4rem,
-        16vw,
-        6.5rem
-      );
+    font-size: clamp(3rem, 13vw, 6.5rem);
     line-height: 0.9;
+    overflow-wrap: normal;
   }
 
   .home-hero-main h1 .hero-heading-second {
@@ -625,31 +512,34 @@
   }
 
   .home-hero-description {
-    margin:
-      26px
-      0
-      0
-      24px;
-    max-width: 320px;
-    font-size: 15px;
+    width: auto;
+    max-width: min(320px, calc(100% - 24px));
+    margin: 26px 0 0 24px;
+    font-size: clamp(14px, 3.8vw, 15px);
     font-weight: 600;
     line-height: 1.55;
   }
 
   .home-hero-actions {
-    margin:
-      22px
-      0
-      0
-      24px;
+    margin: 22px 0 0 24px;
+    gap: 10px;
     flex-wrap: wrap;
   }
 
   .hero-button {
     min-width: 135px;
-    height: 48px;
+    min-height: 48px;
     padding: 0 18px;
     font-size: 13px;
+    touch-action: manipulation;
+  }
+
+  .hero-button:hover {
+    transform: none;
+  }
+
+  .hero-button:hover::before {
+    height: 0;
   }
 
   .home-hero-bottom {
@@ -660,6 +550,10 @@
   .hero-scroll-line {
     width: 40px;
   }
+
+  .hero-scroll-arrow {
+    animation-duration: 2.2s;
+  }
 }
 
 /* =========================================================
@@ -667,32 +561,29 @@
    ========================================================= */
 
 @media (max-width: 420px) {
-
   .home-hero-content {
-    width:
-      calc(100% - 28px);
+    width: calc(100% - 28px);
     padding-bottom: 44px;
   }
 
   .home-hero-main h1 {
-    font-size:
-      clamp(
-        3.7rem,
-        15vw,
-        5.3rem
-      );
+    font-size: clamp(2.7rem, 12.5vw, 3.7rem);
+    letter-spacing: -0.045em;
   }
 
-  .home-hero-description {
-    margin-left: 18px;
+  .home-hero-main h1 .hero-heading-second {
+    margin-left: 14px;
   }
 
+  .home-hero-description,
   .home-hero-actions {
-    margin-left: 18px;
+    margin-left: 14px;
   }
 
   .hero-button {
-    min-width: 125px;
+    min-width: 0;
+    min-height: 46px;
+    padding-inline: 16px;
   }
 
   .home-hero-bottom {
@@ -701,31 +592,7 @@
 }
 
 /* =========================================================
-   REDUCED MOTION
-   ========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-  .home-hero-video,
-  .home-hero-content,
-  .hero-scroll-arrow {
-    animation: none !important;
-    transition: none !important;
-    opacity: 1;
-    clip-path: none;
-    filter: none;
-    transform: none;
-  }
-
-  .hero-line-inner,
-  .hero-char,
-  .hero-word {
-    transform: none !important;
-  }
-}
-
-/* =========================================================
-   HIDE SCROLLBAR — KEEP SCROLLING ENABLED
+   HIDE SCROLLBAR — KEEP NATIVE SCROLLING ENABLED
    ========================================================= */
 
 html,
@@ -745,86 +612,9 @@ body::-webkit-scrollbar,
 }
 
 /* =========================================================
-   LOCOMOTIVE SCROLL CONTAINER
-========================================================= */
-
-.home-page {
-  width: 100%;
-  min-height: 100vh;
-}
-
-/* =========================================================
-   MOBILE PERFORMANCE + RESPONSIVE FIXES
-   Existing desktop design remains unchanged.
+   VERY NARROW PHONES
    ========================================================= */
 
-/* Prevent accidental horizontal overflow */
-.home-page,
-.home-hero,
-.home-hero-content {
-  max-width: 100%;
-}
-
-/* Smoother video rendering on smaller screens */
-.home-hero-video {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-/* Tablet and mobile */
-@media (max-width: 720px) {
-  .home-hero-video {
-    filter: none;
-    transform: scale(1.02);
-    object-position: 70% center;
-  }
-
-  .home-hero-content {
-    transition: none;
-    will-change: auto;
-  }
-
-  .home-hero-main h1 {
-    font-size: clamp(3rem, 13vw, 6.5rem);
-    overflow-wrap: normal;
-  }
-
-  .home-hero-main h1 .hero-heading-word {
-    max-width: 100%;
-  }
-
-  .home-hero-description {
-    width: auto;
-    max-width: min(320px, calc(100% - 24px));
-    font-size: clamp(14px, 3.8vw, 15px);
-  }
-
-  .home-hero-actions {
-    gap: 10px;
-  }
-
-  .hero-button {
-    touch-action: manipulation;
-  }
-
-  .hero-button:hover {
-    transform: none;
-  }
-
-  .hero-button:hover::before {
-    height: 0;
-  }
-
-  .hero-button span:last-child {
-    transition: none;
-  }
-
-  .hero-scroll-arrow {
-    animation-duration: 2.2s;
-  }
-}
-
-/* Very narrow phones */
 @media (max-width: 380px) {
   .home-hero-main h1 {
     font-size: clamp(2.7rem, 12.5vw, 3.7rem);
@@ -840,25 +630,36 @@ body::-webkit-scrollbar,
     margin-left: 14px;
   }
 
+  .home-hero-actions {
+    gap: 8px;
+  }
+
   .hero-button {
     min-width: 0;
     padding-inline: 14px;
   }
 }
 
-/* Respect the device's reduced-motion setting */
-@media (prefers-reduced-motion: reduce) {
-  .home-hero-video {
-    animation: none !important;
-  }
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
 
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-video,
+  .home-hero-content,
   .hero-scroll-arrow {
     animation: none !important;
+    transition: none !important;
+  }
+
+  .hero-line-inner,
+  .hero-char,
+  .hero-word {
+    transform: none !important;
   }
 
   .hero-button,
-  .hero-button::before,
-  .hero-button span:last-child {
+  .hero-button::before {
     transition: none !important;
   }
 }

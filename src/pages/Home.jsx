@@ -1,3 +1,4 @@
+
 import React, { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
@@ -10,12 +11,6 @@ import "./Home.css";
 gsap.registerPlugin(ScrollTrigger);
 
 ScrollTrigger.config({ ignoreMobileResize: true });
-
-/* ---------------------------------------------------------
-   TEXT SPLITTERS (used by the hero text animation)
-   Every letter / word sits inside its own mask, so it can
-   rise out of it like in premium developer portfolios.
---------------------------------------------------------- */
 
 const SplitChars = ({ text }) =>
   Array.from(text).map((char, index) => (
@@ -65,35 +60,36 @@ function Home() {
     const content = contentRef.current;
     const video = videoRef.current;
 
-    if (!hero || !content) return;
+    if (!hero || !content) return undefined;
 
     let cancelled = false;
-    let refreshFrameOne = 0;
-    let refreshFrameTwo = 0;
+    let refreshFrame = 0;
     let introTimer = 0;
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
+    /*
+     * Combine refresh requests into one animation frame.
+     * Fonts, video metadata and window load can all request a refresh.
+     */
     const scheduleRefresh = () => {
-      if (cancelled || refreshFrameOne || refreshFrameTwo) return;
+      if (cancelled || refreshFrame) return;
 
-      refreshFrameOne = requestAnimationFrame(() => {
-        refreshFrameOne = 0;
+      refreshFrame = requestAnimationFrame(() => {
+        refreshFrame = 0;
 
-        refreshFrameTwo = requestAnimationFrame(() => {
-          refreshFrameTwo = 0;
-
-          if (!cancelled) {
-            ScrollTrigger.refresh();
-          }
-        });
+        if (!cancelled) {
+          ScrollTrigger.refresh();
+        }
       });
     };
 
     const handleMouseMove = (event) => {
       const rect = hero.getBoundingClientRect();
+
+      if (!rect.width || !rect.height) return;
 
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
@@ -118,7 +114,6 @@ function Home() {
 
         const x = event.clientX - (rect.left + rect.width / 2);
         const y = event.clientY - (rect.top + rect.height / 2);
-
         const strength = 0.25;
 
         button.style.setProperty(
@@ -143,16 +138,19 @@ function Home() {
       return () => {
         button.removeEventListener("mousemove", handleMove);
         button.removeEventListener("mouseleave", handleLeave);
+        button.style.setProperty("--magnetic-x", "0px");
+        button.style.setProperty("--magnetic-y", "0px");
       };
     };
 
-    hero.addEventListener("mousemove", handleMouseMove);
+    hero.addEventListener("mousemove", handleMouseMove, {
+      passive: true,
+    });
     hero.addEventListener("mouseleave", handleMouseLeave);
 
     const cleanupPrimary = createMagneticButton(
       primaryButtonRef.current
     );
-
     const cleanupSecondary = createMagneticButton(
       secondaryButtonRef.current
     );
@@ -164,22 +162,17 @@ function Home() {
       video.play().catch(() => {});
     }
 
-    /* -------------------------------------------------------
-       HERO TEXT INTRO ANIMATION
-       1) top labels rise + the line draws itself
-       2) eyebrow rises
-       3) FAISAL / MUSTAFA: letter by letter out of a mask
-       4) description: word by word out of a mask
-       5) buttons + scroll hint fade up
-       Starts after the font is ready (max 1.2s wait), so the
-       letters never jump when the font swaps in.
-    ------------------------------------------------------- */
+    /*
+     * HERO INTRO ANIMATION
+     * Preserves the original text and button reveal.
+     */
     const introCtx = gsap.context(() => {
       if (reduceMotion) return;
 
       const topItems = gsap.utils.toArray("[data-hero-top]", hero);
       const topLine = hero.querySelector(".hero-top-line");
       const eyebrow = hero.querySelector("[data-hero-eyebrow]");
+
       const firstChars = gsap.utils.toArray(
         ".hero-heading-first .hero-char",
         hero
@@ -188,20 +181,29 @@ function Home() {
         ".hero-heading-second .hero-char",
         hero
       );
+
       const words = gsap.utils.toArray(".hero-word", hero);
       const actions = hero.querySelector(".home-hero-actions");
       const bottom = hero.querySelector(".home-hero-bottom");
 
       gsap.set(topItems, { yPercent: 125 });
-      gsap.set(topLine, { scaleX: 0, transformOrigin: "left center" });
+      gsap.set(topLine, {
+        scaleX: 0,
+        transformOrigin: "left center",
+      });
       gsap.set(eyebrow, { yPercent: 125 });
+
       gsap.set([...firstChars, ...secondChars], {
         yPercent: 118,
         rotate: 8,
         transformOrigin: "0% 100%",
       });
+
       gsap.set(words, { yPercent: 118 });
-      gsap.set([actions, bottom], { autoAlpha: 0, y: 26 });
+      gsap.set([actions, bottom], {
+        autoAlpha: 0,
+        y: 26,
+      });
 
       const intro = gsap.timeline({
         paused: true,
@@ -211,34 +213,67 @@ function Home() {
       intro
         .to(
           topLine,
-          { scaleX: 1, duration: 1.4, ease: "power3.inOut" },
+          {
+            scaleX: 1,
+            duration: 1.4,
+            ease: "power3.inOut",
+          },
           0.15
         )
-        .to(topItems, { yPercent: 0, duration: 1.1, stagger: 0.12 }, 0.25)
+        .to(
+          topItems,
+          { yPercent: 0, duration: 1.1, stagger: 0.12 },
+          0.25
+        )
         .to(eyebrow, { yPercent: 0, duration: 1.1 }, 0.45)
         .to(
           firstChars,
-          { yPercent: 0, rotate: 0, duration: 1.25, stagger: 0.055 },
+          {
+            yPercent: 0,
+            rotate: 0,
+            duration: 1.25,
+            stagger: 0.055,
+          },
           0.5
         )
         .to(
           secondChars,
-          { yPercent: 0, rotate: 0, duration: 1.25, stagger: 0.055 },
+          {
+            yPercent: 0,
+            rotate: 0,
+            duration: 1.25,
+            stagger: 0.055,
+          },
           0.72
         )
         .to(
           words,
-          { yPercent: 0, duration: 1, stagger: 0.03, ease: "power4.out" },
+          {
+            yPercent: 0,
+            duration: 1,
+            stagger: 0.03,
+            ease: "power4.out",
+          },
           1.0
         )
         .to(
           actions,
-          { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out" },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
+          },
           1.25
         )
         .to(
           bottom,
-          { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out" },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
+          },
           1.4
         );
 
@@ -246,46 +281,50 @@ function Home() {
         if (!cancelled) intro.play();
       };
 
-      const fontsReady = document.fonts?.ready;
-
-      if (fontsReady) {
+      if (document.fonts?.ready) {
         introTimer = window.setTimeout(startIntro, 1200);
 
-        fontsReady.then(() => {
+        document.fonts.ready.then(() => {
+          if (cancelled) return;
+
           window.clearTimeout(introTimer);
+          introTimer = 0;
           startIntro();
+          scheduleRefresh();
         });
       } else {
         startIntro();
       }
     }, hero);
 
-    // Initialize the hero pin before the footer measures its triggers.
+    /*
+     * ABOUT PIN / REVEAL
+     * The original pinned hero effect remains in place.
+     */
     const ctx = gsap.context(() => {
-      if (aboutRef.current) {
-        gsap.set(aboutRef.current, {
-          yPercent: 100,
-        });
+      if (!aboutRef.current) return;
 
-        gsap.to(aboutRef.current, {
-          yPercent: 0,
-          ease: "none",
-          force3D: true,
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: "bottom top",
-            scrub: 1,
-            pin: hero,
-            pinSpacing: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        });
-      }
+      gsap.set(aboutRef.current, {
+        yPercent: 100,
+      });
+
+      gsap.to(aboutRef.current, {
+        yPercent: 0,
+        ease: "none",
+        force3D: true,
+        scrollTrigger: {
+          trigger: hero,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+          pin: hero,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
     }, hero);
 
-    // Recalculate trigger positions after the pin is registered.
     scheduleRefresh();
 
     const handleWindowLoad = () => scheduleRefresh();
@@ -296,21 +335,15 @@ function Home() {
       });
     }
 
-    if (document.fonts?.ready) {
-      document.fonts.ready.then(() => {
-        if (!cancelled) scheduleRefresh();
-      });
+    if (video?.readyState >= 1) {
+      scheduleRefresh();
     }
 
     return () => {
       cancelled = true;
 
-      if (refreshFrameOne) {
-        cancelAnimationFrame(refreshFrameOne);
-      }
-
-      if (refreshFrameTwo) {
-        cancelAnimationFrame(refreshFrameTwo);
+      if (refreshFrame) {
+        cancelAnimationFrame(refreshFrame);
       }
 
       if (introTimer) {
@@ -352,7 +385,7 @@ function Home() {
           preload="metadata"
         />
 
-        <div className="home-hero-overlay"></div>
+        <div className="home-hero-overlay" />
 
         <div ref={contentRef} className="home-hero-content">
           <div className="home-hero-top">
@@ -368,7 +401,7 @@ function Home() {
               </span>
             </span>
 
-            <div className="hero-top-line" aria-hidden="true"></div>
+            <div className="hero-top-line" aria-hidden="true" />
           </div>
 
           <div className="home-hero-main">
@@ -380,7 +413,10 @@ function Home() {
               </span>
             </p>
 
-            <h1 className="home-hero-heading" aria-label="FAISAL MUSTAFA">
+            <h1
+              className="home-hero-heading"
+              aria-label="FAISAL MUSTAFA"
+            >
               <span
                 className="hero-heading-word hero-heading-first"
                 aria-hidden="true"
@@ -408,7 +444,6 @@ function Home() {
                 className="hero-button hero-button-primary"
               >
                 <span>View Work</span>
-                <span>↗</span>
               </a>
 
               <Link
@@ -417,7 +452,6 @@ function Home() {
                 className="hero-button hero-button-secondary"
               >
                 <span>Let's Talk</span>
-                <span>↗</span>
               </Link>
             </div>
           </div>
@@ -427,9 +461,11 @@ function Home() {
               SCROLL TO EXPLORE
             </span>
 
-            <span className="hero-scroll-line"></span>
+            <span className="hero-scroll-line" />
 
-            <span className="hero-scroll-arrow">↓</span>
+            <span className="hero-scroll-arrow" aria-hidden="true">
+              ↓
+            </span>
           </div>
         </div>
       </section>
