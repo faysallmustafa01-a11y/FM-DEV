@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import "./Contact.css";
+
 import bgDesktop from "../assets/lets-talk.svg";
 import bgMobile from "../assets/lets-talk.mob.svg";
 
@@ -11,7 +12,7 @@ const EMAILJS_SERVICE_ID = "service_e08t3zj";
 const EMAILJS_TEMPLATE_ID = "template_47a73e5";
 const EMAILJS_PUBLIC_KEY = "i-SQj3R5TfGQEJRj7";
 
-/* Splits text into animated letters (used for the heading) */
+/* Splits text into animated letters */
 const Chars = ({ text, start = 0 }) =>
   text.split("").map((ch, i) => (
     <span key={i} className="ct-char" style={{ "--i": start + i }}>
@@ -34,80 +35,28 @@ const Contact = () => {
   const btnRef = useRef(null);
   const loadedRef = useRef(false);
 
-  /* Page-load reveal (double rAF so the transition always runs) */
+  /* Page-load reveal */
   useEffect(() => {
-    let id2 = 0;
+    let frame1 = 0;
+    let frame2 = 0;
 
-    const id1 = requestAnimationFrame(() => {
-      id2 = requestAnimationFrame(() => setReady(true));
+    frame1 = requestAnimationFrame(() => {
+      frame2 = requestAnimationFrame(() => {
+        setReady(true);
+      });
     });
 
     return () => {
-      cancelAnimationFrame(id1);
-      cancelAnimationFrame(id2);
+      cancelAnimationFrame(frame1);
+      cancelAnimationFrame(frame2);
     };
   }, []);
 
-  /* Smooth scrolling (desktop + mobile) */
-  useEffect(() => {
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (reduce) return;
-
-    const html = document.documentElement;
-    const prev = html.style.scrollBehavior;
-
-    html.style.scrollBehavior = "smooth";
-
-    return () => {
-      html.style.scrollBehavior = prev;
-    };
-  }, []);
-
-  /* Scroll-linked heading motion (light, rAF throttled) */
-  useEffect(() => {
-    const page = pageRef.current;
-    if (!page) return;
-
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (reduce) return;
-
-    let ticking = false;
-    let rafId = 0;
-
-    const update = () => {
-      page.style.setProperty(
-        "--sp",
-        String(Math.max(0, Math.round(window.scrollY)))
-      );
-
-      ticking = false;
-    };
-
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        rafId = requestAnimationFrame(update);
-      }
-    };
-
-    update();
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, []);
-
-  /* Scroll reveal: elements animate in when they enter the screen.
-     Elements with data-repeat animate again on scroll. */
+  /*
+   * Scroll reveal.
+   * No global smooth-scroll override and no scroll-linked
+   * style updates, so native browser scrolling stays responsive.
+   */
   useEffect(() => {
     if (!ready) return;
 
@@ -121,22 +70,26 @@ const Contact = () => {
       return;
     }
 
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       loadedRef.current = true;
     }, 1600);
 
-    const io = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const el = entry.target;
           const repeat = el.hasAttribute("data-repeat");
 
           if (entry.isIntersecting) {
-            if (loadedRef.current) el.style.setProperty("--d", "0s");
+            if (loadedRef.current) {
+              el.style.setProperty("--d", "0s");
+            }
 
             el.classList.add("ct-in");
 
-            if (!repeat) io.unobserve(el);
+            if (!repeat) {
+              observer.unobserve(el);
+            }
           } else if (repeat) {
             const leftAbove = entry.boundingClientRect.top < 0;
 
@@ -146,18 +99,21 @@ const Contact = () => {
           }
         });
       },
-      { threshold: 0.12 }
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px 30px 0px",
+      }
     );
 
-    items.forEach((el) => io.observe(el));
+    items.forEach((el) => observer.observe(el));
 
     return () => {
-      clearTimeout(timer);
-      io.disconnect();
+      window.clearTimeout(timer);
+      observer.disconnect();
     };
   }, [ready]);
 
-  /* Magnetic "Send message" button (mouse devices only) */
+  /* Magnetic submit button on mouse devices only */
   useEffect(() => {
     const btn = btnRef.current;
     if (!btn) return;
@@ -173,6 +129,7 @@ const Contact = () => {
     if (!fine || reduce) return;
 
     const RANGE = 80;
+
     let tx = 0;
     let ty = 0;
     let cx = 0;
@@ -188,13 +145,15 @@ const Contact = () => {
       if (moved) {
         moved = false;
 
-        const r = btn.getBoundingClientRect();
-        const centerX = r.left + r.width / 2 - cx;
-        const centerY = r.top + r.height / 2 - cy;
+        const rect = btn.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
         const dx = px - centerX;
         const dy = py - centerY;
-        const outX = Math.max(Math.abs(dx) - r.width / 2, 0);
-        const outY = Math.max(Math.abs(dy) - r.height / 2, 0);
+
+        const outX = Math.max(Math.abs(dx) - rect.width / 2, 0);
+        const outY = Math.max(Math.abs(dy) - rect.height / 2, 0);
 
         if (Math.hypot(outX, outY) < RANGE) {
           tx = dx * 0.3;
@@ -211,17 +170,22 @@ const Contact = () => {
       btn.style.setProperty("--mx", `${cx.toFixed(2)}px`);
       btn.style.setProperty("--my", `${cy.toFixed(2)}px`);
 
-      if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) {
+      if (
+        Math.abs(tx - cx) > 0.05 ||
+        Math.abs(ty - cy) > 0.05
+      ) {
         raf = requestAnimationFrame(frame);
       }
     };
 
-    const onMove = (e) => {
-      px = e.clientX;
-      py = e.clientY;
+    const onMove = (event) => {
+      px = event.clientX;
+      py = event.clientY;
       moved = true;
 
-      if (!raf) raf = requestAnimationFrame(frame);
+      if (!raf) {
+        raf = requestAnimationFrame(frame);
+      }
     };
 
     const onLeaveDoc = () => {
@@ -229,25 +193,31 @@ const Contact = () => {
       ty = 0;
       moved = false;
 
-      if (!raf) raf = requestAnimationFrame(frame);
+      if (!raf) {
+        raf = requestAnimationFrame(frame);
+      }
     };
 
-    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointermove", onMove, {
+      passive: true,
+    });
     document.addEventListener("mouseleave", onLeaveDoc);
 
     return () => {
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("mouseleave", onLeaveDoc);
 
-      if (raf) cancelAnimationFrame(raf);
+      if (raf) {
+        cancelAnimationFrame(raf);
+      }
 
       btn.style.removeProperty("--mx");
       btn.style.removeProperty("--my");
     };
   }, []);
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
+  const onChange = (event) => {
+    const { name, value } = event.target;
 
     setForm((current) => ({
       ...current,
@@ -260,9 +230,9 @@ const Contact = () => {
     }
   };
 
-  /* Send contact form directly through EmailJS */
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  /* Submit contact form through EmailJS */
+  const onSubmit = async (event) => {
+    event.preventDefault();
 
     if (sending) return;
 
@@ -302,7 +272,9 @@ const Contact = () => {
         }
       );
 
-      setStatus("Message sent successfully! I'll get back to you soon.");
+      setStatus(
+        "Message sent successfully! I'll get back to you soon."
+      );
       setStatusType("success");
 
       setForm({
@@ -322,6 +294,15 @@ const Contact = () => {
     }
   };
 
+  const backToTop = (event) => {
+    event.preventDefault();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div className="ct-scroll-container">
       <main
@@ -329,14 +310,12 @@ const Contact = () => {
         ref={pageRef}
         className={`contact-page ${ready ? "ct-ready" : ""}`}
       >
-        {/* SVG BACKGROUND: mobile / desktop */}
         <picture className="ct-bg" aria-hidden="true">
           <source media="(max-width: 650px)" srcSet={bgMobile} />
           <img src={bgDesktop} alt="" draggable="false" />
         </picture>
 
         <div className="ct-inner">
-          {/* HEADING */}
           <header className="ct-header">
             <h1 className="ct-title" aria-label="LET'S TALK">
               <span className="ct-mask" aria-hidden="true">
@@ -345,7 +324,10 @@ const Contact = () => {
                 </span>
               </span>
 
-              <span className="ct-mask ct-mask-2" aria-hidden="true">
+              <span
+                className="ct-mask ct-mask-2"
+                aria-hidden="true"
+              >
                 <span className="ct-line ct-outline">
                   <Chars text="TALK" start={5} />
                 </span>
@@ -354,7 +336,7 @@ const Contact = () => {
           </header>
 
           <div className="ct-grid">
-            {/* LEFT: DETAILS */}
+            {/* LEFT: CONTACT DETAILS */}
             <aside className="ct-info">
               <div
                 className="ct-block ct-fade"
@@ -368,7 +350,10 @@ const Contact = () => {
                   href={`mailto:${EMAIL}`}
                   aria-label={EMAIL}
                 >
-                  <span className="ct-email-text" aria-hidden="true">
+                  <span
+                    className="ct-email-text"
+                    aria-hidden="true"
+                  >
                     {EMAIL.split("").map((ch, i) => (
                       <span
                         key={i}
@@ -400,8 +385,12 @@ const Contact = () => {
               </div>
             </aside>
 
-            {/* RIGHT: FORM */}
-            <form className="ct-form" onSubmit={onSubmit} noValidate>
+            {/* RIGHT: CONTACT FORM */}
+            <form
+              className="ct-form"
+              onSubmit={onSubmit}
+              noValidate
+            >
               <div
                 className="ct-field ct-fade"
                 style={{ "--d": "0.4s" }}
@@ -478,7 +467,10 @@ const Contact = () => {
                     {sending ? "Sending..." : "Send message"}
                   </span>
 
-                  <span className="ct-submit-arrow" aria-hidden="true">
+                  <span
+                    className="ct-submit-arrow"
+                    aria-hidden="true"
+                  >
                     {sending ? "…" : "→"}
                   </span>
                 </button>
@@ -496,26 +488,18 @@ const Contact = () => {
             </form>
           </div>
 
-          {/* EXISTING CONTACT BOTTOM BAR */}
           <footer
             className="ct-bottom ct-fade"
             style={{ "--d": "0.9s" }}
           >
             <span>
-              ©️ {new Date().getFullYear()} ALL RIGHTS RESERVED
+              © {new Date().getFullYear()} ALL RIGHTS RESERVED
             </span>
 
             <a
               className="ct-link"
               href="#top"
-              onClick={(e) => {
-                e.preventDefault();
-
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth",
-                });
-              }}
+              onClick={backToTop}
             >
               BACK TO TOP ↑
             </a>
