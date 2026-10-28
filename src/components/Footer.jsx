@@ -25,7 +25,7 @@ const NAVIGATION_LINKS = [
 ];
 
 const SOCIAL_LINKS = [
-  { label: "GitHub", href: "https://github.com/your-username" },
+  { label: "GitHub", href: "https://github.com/faysallmustafa01-a11y" },
   {
     label: "LinkedIn",
     href: "https://www.linkedin.com/in/your-username/",
