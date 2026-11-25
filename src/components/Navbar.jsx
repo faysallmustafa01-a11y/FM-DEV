@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
@@ -55,17 +54,15 @@ function Navbar() {
 
         const delta = y - lastScrollY.current;
 
+        /*
+         * Mobile: the logo hides while scrolling down and does NOT come
+         * back when scrolling up. It only returns at the top of the page
+         * (handled above, when y <= SCROLLED_AT).
+         */
         if (delta > DELTA && y > HIDE_AFTER) {
           if (!hiddenRef.current) {
             hiddenRef.current = true;
             setHidden(true);
-          }
-
-          lastScrollY.current = y;
-        } else if (delta < -DELTA) {
-          if (hiddenRef.current) {
-            hiddenRef.current = false;
-            setHidden(false);
           }
 
           lastScrollY.current = y;
@@ -141,6 +138,10 @@ function Navbar() {
     };
   }, [location.pathname]);
 
+  /*
+   * Scrolling to the top on page change is handled by ScrollToTop in
+   * App.jsx, so it is not repeated here.
+   */
   useEffect(() => {
     setMenuOpen(false);
 
@@ -149,10 +150,6 @@ function Navbar() {
 
     setHidden(false);
     setScrolled(false);
-
-    if (!location.hash) {
-      window.scrollTo(0, 0);
-    }
   }, [location.pathname]);
 
   useEffect(() => {
@@ -243,14 +240,24 @@ function Navbar() {
     setMenuOpen(false);
 
     const goHome = () => {
-      if (location.pathname !== "/" || location.hash) {
+      if (location.pathname !== "/") {
         navigate("/");
-      } else {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
+        return;
       }
+
+      /*
+       * Already on the home page. If a hash (like #work) is in the URL,
+       * remove it. `smoothTop` tells ScrollToTop not to jump instantly,
+       * because the smooth scroll below handles it.
+       */
+      if (location.hash) {
+        navigate("/", { replace: true, state: { smoothTop: true } });
+      }
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     };
 
     setTimeout(goHome, wasOpen ? 60 : 0);
@@ -286,6 +293,15 @@ function Navbar() {
     };
 
     setTimeout(goToSection, wasOpen ? 60 : 0);
+  };
+
+  /*
+   * Closes the mobile menu when the Contact link is clicked. If the user
+   * is already on /contact the pathname does not change, so the menu would
+   * otherwise stay open.
+   */
+  const handleContactClick = () => {
+    setMenuOpen(false);
   };
 
   const darkLogo =
@@ -498,6 +514,7 @@ function Navbar() {
                   ? "mobile-link mobile-link-left active"
                   : "mobile-link mobile-link-left"
               }
+              onClick={handleContactClick}
               onTouchStart={handleMobileTouch}
               onMouseEnter={handleMobileTouch}
             >

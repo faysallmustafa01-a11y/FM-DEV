@@ -98,14 +98,21 @@
 
 /* =========================================================
    PAGE SCROLL
+   The vertical scrollbar lives on <html> only. Having it on both
+   <html> and <body> can cause two competing scroll containers on
+   mobile browsers, which breaks window.scrollTo().
    ========================================================= */
 
 html,
 body {
 
-  overflow-y: scroll;
-
   overflow-x: hidden;
+
+}
+
+html {
+
+  overflow-y: scroll;
 
 }
 
