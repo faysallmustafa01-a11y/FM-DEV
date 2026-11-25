@@ -28,13 +28,13 @@ const SOCIAL_LINKS = [
   { label: "GitHub", href: "https://github.com/faysallmustafa01-a11y" },
   {
     label: "LinkedIn",
-    href: "https://www.linkedin.com/in/your-username/",
+    href: "https://www.linkedin.com/in/faisal-mustafa-742799424/",
   },
   {
     label: "Instagram",
     href: "https://www.instagram.com/ffaaiissaall_?psln=Z3FyYzF0eWt1YWpn&utm_source=qr",
   },
-  { label: "WhatsApp", href: "https://wa.me/923000000000" },
+  { label: "WhatsApp", href: "https://wa.me/923410865473" },
   { label: "Gmail", href: "mailto:m.fais.dev@gmail.com" },
 ];
 
