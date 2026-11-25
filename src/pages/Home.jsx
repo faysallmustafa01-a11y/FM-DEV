@@ -64,7 +64,6 @@ function Home() {
 
     let cancelled = false;
     let refreshFrame = 0;
-    let introTimer = 0;
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -151,6 +150,7 @@ function Home() {
     const cleanupPrimary = createMagneticButton(
       primaryButtonRef.current
     );
+
     const cleanupSecondary = createMagneticButton(
       secondaryButtonRef.current
     );
@@ -164,7 +164,7 @@ function Home() {
 
     /*
      * HERO INTRO ANIMATION
-     * Preserves the original text and button reveal.
+     * Existing text and button reveal are preserved.
      */
     const introCtx = gsap.context(() => {
       if (reduceMotion) return;
@@ -177,6 +177,7 @@ function Home() {
         ".hero-heading-first .hero-char",
         hero
       );
+
       const secondChars = gsap.utils.toArray(
         ".hero-heading-second .hero-char",
         hero
@@ -187,10 +188,12 @@ function Home() {
       const bottom = hero.querySelector(".home-hero-bottom");
 
       gsap.set(topItems, { yPercent: 125 });
+
       gsap.set(topLine, {
         scaleX: 0,
         transformOrigin: "left center",
       });
+
       gsap.set(eyebrow, { yPercent: 125 });
 
       gsap.set([...firstChars, ...secondChars], {
@@ -200,6 +203,7 @@ function Home() {
       });
 
       gsap.set(words, { yPercent: 118 });
+
       gsap.set([actions, bottom], {
         autoAlpha: 0,
         y: 26,
@@ -254,7 +258,7 @@ function Home() {
             stagger: 0.03,
             ease: "power4.out",
           },
-          1.0
+          0.15
         )
         .to(
           actions,
@@ -277,24 +281,11 @@ function Home() {
           1.4
         );
 
-      const startIntro = () => {
-        if (!cancelled) intro.play();
-      };
-
-      if (document.fonts?.ready) {
-        introTimer = window.setTimeout(startIntro, 1200);
-
-        document.fonts.ready.then(() => {
-          if (cancelled) return;
-
-          window.clearTimeout(introTimer);
-          introTimer = 0;
-          startIntro();
-          scheduleRefresh();
-        });
-      } else {
-        startIntro();
-      }
+      /*
+       * Start the intro immediately instead of waiting for fonts.
+       * This reduces the initial render delay of the hero description.
+       */
+      intro.play();
     }, hero);
 
     /*
@@ -327,6 +318,18 @@ function Home() {
 
     scheduleRefresh();
 
+    /*
+     * Fonts are still monitored for layout refresh,
+     * but they no longer delay the hero intro animation.
+     */
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (!cancelled) {
+          scheduleRefresh();
+        }
+      });
+    }
+
     const handleWindowLoad = () => scheduleRefresh();
 
     if (document.readyState !== "complete") {
@@ -344,10 +347,6 @@ function Home() {
 
       if (refreshFrame) {
         cancelAnimationFrame(refreshFrame);
-      }
-
-      if (introTimer) {
-        window.clearTimeout(introTimer);
       }
 
       hero.removeEventListener("mousemove", handleMouseMove);
