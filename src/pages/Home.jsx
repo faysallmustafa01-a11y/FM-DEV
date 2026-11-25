@@ -13,8 +13,8 @@ import "./Home.css";
 
 /*
  * PERFORMANCE: About, Services and Work are below the fold, so they are
- * loaded as separate chunks right after the hero has painted. This keeps
- * the first JavaScript bundle small and lets the hero text appear sooner.
+ * loaded as separate chunks AFTER the hero intro has finished. This keeps
+ * the first JavaScript bundle small and keeps the intro animation smooth.
  */
 const About = lazy(() => import("./About"));
 const Services = lazy(() => import("./Services"));
@@ -28,9 +28,9 @@ gsap.registerPlugin(ScrollTrigger);
 ScrollTrigger.config({ ignoreMobileResize: true });
 
 /*
- * One shared, debounced ScrollTrigger refresh. Many things ask for a
- * refresh at load time (fonts, video, lazy sections), so they are merged
- * into a single refresh to avoid repeated forced reflows.
+ * One shared, debounced ScrollTrigger refresh. Fonts, page load and the
+ * lazy sections all ask for a refresh, so the requests are merged into a
+ * single refresh instead of several refreshes in a row.
  */
 let refreshTimer = 0;
 
@@ -40,10 +40,10 @@ const requestScrollRefresh = () => {
   refreshTimer = window.setTimeout(() => {
     refreshTimer = 0;
     ScrollTrigger.refresh();
-  }, 150);
+  }, 400);
 };
 
-/* Refreshes ScrollTrigger once a lazy section has actually mounted. */
+/* Asks for a refresh once a lazy section has actually mounted. */
 const SectionReady = () => {
   useEffect(() => {
     requestScrollRefresh();
@@ -69,7 +69,10 @@ function Home() {
 
   const aboutRef = useRef(null);
 
-  /* How many below-the-fold sections are allowed to load (0 to 3). */
+  /* Called by the hero intro when it has finished (see below). */
+  const revealBelowFoldRef = useRef(() => {});
+
+  /* How many below-the-fold sections are mounted (0 to 3). */
   const [stage, setStage] = useState(0);
 
   const handleViewWork = (event) => {
@@ -87,21 +90,27 @@ function Home() {
 
   /*
    * LOAD BELOW-THE-FOLD SECTIONS
-   * After the page has loaded, sections are mounted one by one during
-   * idle time. Any user interaction loads all of them immediately.
+   * They start loading when the hero intro has finished (so the intro
+   * animation never competes with them), one by one during idle time.
+   * Any user interaction loads all of them immediately.
    */
   useEffect(() => {
     let cancelled = false;
     let handle = 0;
     let usedIdle = false;
+    let fallbackTimer = 0;
+    let started = false;
     let current = 0;
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
     const interactionEvents = [
       "wheel",
       "touchstart",
       "pointerdown",
       "keydown",
-      "scroll",
     ];
 
     const cancelHandle = () => {
@@ -150,6 +159,8 @@ function Home() {
     function handleInteraction() {
       if (cancelled) return;
 
+      started = true;
+      window.clearTimeout(fallbackTimer);
       cancelHandle();
       removeInteractionListeners();
 
@@ -157,11 +168,15 @@ function Home() {
       setStage(BELOW_FOLD_SECTIONS);
     }
 
-    const start = () => {
-      if (cancelled) return;
+    const begin = () => {
+      if (cancelled || started) return;
 
+      started = true;
+      window.clearTimeout(fallbackTimer);
       whenIdle(advance);
     };
+
+    revealBelowFoldRef.current = begin;
 
     interactionEvents.forEach((name) =>
       window.addEventListener(name, handleInteraction, {
@@ -170,18 +185,31 @@ function Home() {
       })
     );
 
+    const afterLoad = () => {
+      if (cancelled) return;
+
+      if (reduceMotion) {
+        begin();
+      } else {
+        /* Safety net: the intro normally starts this much earlier. */
+        fallbackTimer = window.setTimeout(begin, 5000);
+      }
+    };
+
     if (document.readyState === "complete") {
-      start();
+      afterLoad();
     } else {
-      window.addEventListener("load", start, { once: true });
+      window.addEventListener("load", afterLoad, { once: true });
     }
 
     return () => {
       cancelled = true;
 
+      window.clearTimeout(fallbackTimer);
       cancelHandle();
       removeInteractionListeners();
-      window.removeEventListener("load", start);
+      window.removeEventListener("load", afterLoad);
+      revealBelowFoldRef.current = () => {};
     };
   }, []);
 
@@ -197,8 +225,15 @@ function Home() {
     let pinFrame = 0;
     let pinTimer = 0;
     let videoTimer = 0;
+    let loadFallbackTimer = 0;
     let heroRect = null;
     let pinCtx = null;
+    let heroObserver = null;
+
+    /* Video state */
+    let offscreen = false;
+    let pinReady = false;
+    let pageLoaded = document.readyState === "complete";
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -316,21 +351,86 @@ function Home() {
 
     /*
      * HERO VIDEO
-     * The video starts downloading only after the page has loaded, so it
-     * does not compete with the JavaScript and CSS that the hero text
-     * needs. It fades in as soon as the first frame is ready.
+     *
+     * 1) The video file is requested only AFTER the pin has been created
+     *    and the page has loaded. Creating the pin moves the hero element
+     *    in the DOM, and moving a <video> pauses it and makes it blink.
+     * 2) The video is paused while the hero is completely off screen
+     *    (saves decoding work, so scrolling stays smooth).
+     * 3) After every ScrollTrigger refresh, and when the tab becomes
+     *    visible again, the video is resumed if the browser paused it.
      */
-    const handleVideoMetadata = () => scheduleRefresh();
+    const playVideo = () => {
+      if (cancelled || !video || offscreen || document.hidden) return;
+      if (!video.getAttribute("src")) return;
 
-    const handleVideoReady = () => {
-      if (video) video.dataset.ready = "true";
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
     };
 
     const startVideo = () => {
-      if (cancelled || !video || video.getAttribute("src")) return;
+      if (cancelled || !video) return;
 
-      video.src = HERO_VIDEO_SRC;
-      video.play().catch(() => {});
+      if (!video.getAttribute("src")) {
+        video.src = HERO_VIDEO_SRC;
+      }
+
+      playVideo();
+    };
+
+    const tryStartVideo = () => {
+      if (!pinReady || !pageLoaded) return;
+
+      /* small pause so the load-time refreshes are finished first */
+      window.clearTimeout(videoTimer);
+      videoTimer = window.setTimeout(startVideo, 600);
+    };
+
+    const handleVideoMetadata = () => scheduleRefresh();
+
+    let fadeAnimation = null;
+
+    const handleVideoReady = () => {
+      if (!video || video.dataset.ready === "true" || fadeAnimation) {
+        return;
+      }
+
+      if (reduceMotion || typeof video.animate !== "function") {
+        video.dataset.ready = "true";
+        return;
+      }
+
+      /*
+       * Web Animations API (not a CSS animation): it keeps running when
+       * ScrollTrigger moves the hero in the DOM, so there is no blink.
+       */
+      fadeAnimation = video.animate(
+        [
+          { opacity: 0, transform: "scale(1.1)" },
+          { opacity: 1, transform: "scale(1.05)" },
+        ],
+        {
+          duration: 1800,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          fill: "both",
+        }
+      );
+
+      fadeAnimation.onfinish = () => {
+        video.dataset.ready = "true";
+
+        if (fadeAnimation) {
+          fadeAnimation.cancel();
+          fadeAnimation = null;
+        }
+      };
+    };
+
+    const handleScrollTriggerRefresh = () => playVideo();
+
+    const handleVisibility = () => {
+      if (!document.hidden) playVideo();
     };
 
     if (video) {
@@ -338,11 +438,36 @@ function Home() {
       video.addEventListener("loadeddata", handleVideoReady);
     }
 
+    ScrollTrigger.addEventListener(
+      "refresh",
+      handleScrollTriggerRefresh
+    );
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    if ("IntersectionObserver" in window) {
+      heroObserver = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry) return;
+
+          offscreen = !entry.isIntersecting;
+
+          if (offscreen) {
+            if (video) video.pause();
+          } else {
+            playVideo();
+          }
+        },
+        { threshold: 0 }
+      );
+
+      heroObserver.observe(hero);
+    }
+
     /*
      * HERO INTRO ANIMATION
-     * Heading, eyebrow, top information and buttons
-     * retain their original animations.
-     * Description is intentionally not animated.
+     * Heading, eyebrow, top information, description and buttons all
+     * animate in together, so nothing is visible on its own first.
      */
     const introCtx = gsap.context(() => {
       if (reduceMotion) return;
@@ -350,6 +475,7 @@ function Home() {
       const topItems = gsap.utils.toArray("[data-hero-top]", hero);
       const topLine = hero.querySelector(".hero-top-line");
       const eyebrow = hero.querySelector("[data-hero-eyebrow]");
+      const description = hero.querySelector(".home-hero-description");
 
       const firstChars = gsap.utils.toArray(
         ".hero-heading-first .hero-char",
@@ -379,7 +505,7 @@ function Home() {
         transformOrigin: "0% 100%",
       });
 
-      gsap.set([actions, bottom], {
+      gsap.set([description, actions, bottom], {
         autoAlpha: 0,
         y: 26,
       });
@@ -387,6 +513,7 @@ function Home() {
       const intro = gsap.timeline({
         paused: true,
         defaults: { ease: "expo.out" },
+        onComplete: () => revealBelowFoldRef.current(),
       });
 
       intro
@@ -424,6 +551,16 @@ function Home() {
             stagger: 0.055,
           },
           0.72
+        )
+        .to(
+          description,
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.9,
+            ease: "power3.out",
+          },
+          0.6
         )
         .to(
           actions,
@@ -471,7 +608,7 @@ function Home() {
      * The About layer is moved off-screen immediately (before the first
      * paint, so nothing flashes), exactly as before. The ScrollTrigger
      * itself is created right after the first paint so it no longer
-     * delays the hero text.
+     * delays the hero text. The video starts only after this has run.
      */
     const setCtx = gsap.context(() => {
       if (!aboutRef.current) return;
@@ -486,27 +623,30 @@ function Home() {
 
       const about = aboutRef.current;
 
-      if (cancelled || !about) return;
+      if (!cancelled && about) {
+        pinCtx = gsap.context(() => {
+          gsap.to(about, {
+            yPercent: 0,
+            ease: "none",
+            force3D: true,
+            scrollTrigger: {
+              trigger: hero,
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.5,
+              pin: hero,
+              pinSpacing: true,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+            },
+          });
+        }, hero);
 
-      pinCtx = gsap.context(() => {
-        gsap.to(about, {
-          yPercent: 0,
-          ease: "none",
-          force3D: true,
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: "bottom top",
-            scrub: 1,
-            pin: hero,
-            pinSpacing: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        });
-      }, hero);
+        scheduleRefresh();
+      }
 
-      scheduleRefresh();
+      pinReady = true;
+      tryStartVideo();
     };
 
     pinFrame = requestAnimationFrame(() => {
@@ -515,20 +655,22 @@ function Home() {
     });
 
     const handleWindowLoad = () => {
-      window.clearTimeout(videoTimer);
-      videoTimer = window.setTimeout(startVideo, 0);
+      window.clearTimeout(loadFallbackTimer);
+      pageLoaded = true;
+      tryStartVideo();
       scheduleRefresh();
     };
 
-    if (document.readyState === "complete") {
-      videoTimer = window.setTimeout(startVideo, 0);
-    } else {
+    if (!pageLoaded) {
       window.addEventListener("load", handleWindowLoad, {
         once: true,
       });
 
       /* Safety net: never leave the hero without a video. */
-      videoTimer = window.setTimeout(startVideo, 4000);
+      loadFallbackTimer = window.setTimeout(() => {
+        pageLoaded = true;
+        tryStartVideo();
+      }, 4000);
     }
 
     return () => {
@@ -540,9 +682,28 @@ function Home() {
 
       window.clearTimeout(pinTimer);
       window.clearTimeout(videoTimer);
+      window.clearTimeout(loadFallbackTimer);
       window.clearTimeout(introTimer);
       window.clearTimeout(refreshTimer);
       refreshTimer = 0;
+
+      if (heroObserver) heroObserver.disconnect();
+
+      if (fadeAnimation) {
+        fadeAnimation.onfinish = null;
+        fadeAnimation.cancel();
+        fadeAnimation = null;
+      }
+
+      ScrollTrigger.removeEventListener(
+        "refresh",
+        handleScrollTriggerRefresh
+      );
+
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibility
+      );
 
       hero.removeEventListener("mousemove", handleMouseMove);
       hero.removeEventListener("mouseleave", handleMouseLeave);
@@ -577,7 +738,6 @@ function Home() {
         <video
           ref={videoRef}
           className="home-hero-video"
-          autoPlay
           muted
           loop
           playsInline

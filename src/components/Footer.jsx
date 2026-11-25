@@ -241,9 +241,36 @@ const Footer = () => {
       }
     }
 
-    /* Keep every ScrollTrigger in sync when the page height changes later */
-    if ("ResizeObserver" in window) {
-      layoutObserver = new ResizeObserver(() => refreshAfterLayout());
+    /*
+     * Keep every ScrollTrigger in sync when the page height changes later.
+     * Skipped on touch devices: there the browser toolbar showing/hiding
+     * changes the page height on every scroll, and refreshing then makes
+     * the pinned hero (and its video) flicker and lag. Small changes are
+     * ignored everywhere.
+     */
+    const isTouchDevice = window.matchMedia(
+      "(hover: none), (pointer: coarse)"
+    ).matches;
+
+    let lastBodyHeight = 0;
+
+    if ("ResizeObserver" in window && !isTouchDevice) {
+      layoutObserver = new ResizeObserver((entries) => {
+        const height = Math.round(
+          entries[0]?.contentRect?.height || 0
+        );
+
+        if (!lastBodyHeight) {
+          lastBodyHeight = height;
+          return;
+        }
+
+        if (Math.abs(height - lastBodyHeight) < 2) return;
+
+        lastBodyHeight = height;
+        refreshAfterLayout();
+      });
+
       layoutObserver.observe(document.body);
     }
 
@@ -254,11 +281,33 @@ const Footer = () => {
       img.addEventListener("error", refreshAfterLayout);
     });
 
-    const handleResize = () => refreshAfterLayout();
-    const handlePageShow = () => refreshAfterLayout();
+    /*
+     * Only a real WIDTH change needs a refresh. On phones the "resize"
+     * event also fires when the address bar shows or hides while
+     * scrolling, and refreshing on that is what caused the lag.
+     */
+    let lastWidth = window.innerWidth;
+
+    const handleResize = () => {
+      const width = window.innerWidth;
+
+      if (width === lastWidth) return;
+
+      lastWidth = width;
+      refreshAfterLayout();
+    };
+
+    const handleOrientation = () => {
+      lastWidth = window.innerWidth;
+      refreshAfterLayout();
+    };
+
+    const handlePageShow = (event) => {
+      if (event.persisted) refreshAfterLayout();
+    };
 
     window.addEventListener("resize", handleResize, { passive: true });
-    window.addEventListener("orientationchange", handleResize);
+    window.addEventListener("orientationchange", handleOrientation);
     window.addEventListener("pageshow", handlePageShow);
 
     if (document.fonts?.ready) {
@@ -296,7 +345,7 @@ const Footer = () => {
       });
 
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener("orientationchange", handleResize);
+      window.removeEventListener("orientationchange", handleOrientation);
       window.removeEventListener("pageshow", handlePageShow);
       window.removeEventListener("load", refreshAfterLayout);
 

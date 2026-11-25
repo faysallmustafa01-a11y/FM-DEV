@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
-import LocomotiveScroll from "locomotive-scroll";
 
 import {
   SiHtml5,
@@ -516,6 +515,10 @@ function getFloat(index, small = false) {
   };
 }
 
+/* Resting pose used until the cards are in view (no endless animation yet) */
+const FLOAT_REST = { y: 0, rotate: 0 };
+const FLOAT_IDLE = { duration: 0 };
+
 /* The SpiderVille card content (shared by desktop fan and mobile) */
 function SpiderCardBody({ project }) {
   return (
@@ -527,6 +530,8 @@ function SpiderCardBody({ project }) {
               className="project-logo"
               src={project.logo}
               alt="SpiderVille logo"
+              loading="lazy"
+              decoding="async"
             />
           </div>
 
@@ -613,8 +618,8 @@ function ProjectCard({ project, index, width, inView }) {
         style={
           isLocked ? { background: project.bg, color: project.fg } : undefined
         }
-        animate={float.animate}
-        transition={float.transition}
+        animate={inView ? float.animate : FLOAT_REST}
+        transition={inView ? float.transition : FLOAT_IDLE}
       >
         {isLocked ? (
           <>
@@ -740,8 +745,8 @@ function MobileCarousel({ width, inView }) {
                     ? { background: project.bg, color: project.fg }
                     : undefined
                 }
-                animate={float.animate}
-                transition={float.transition}
+                animate={inView ? float.animate : FLOAT_REST}
+                transition={inView ? float.transition : FLOAT_IDLE}
               >
                 {isLocked ? (
                   <>
@@ -887,18 +892,31 @@ export default function Work() {
 
   /* Locomotive Scroll v5: smooth scroll up / down on top of native scroll */
   useEffect(() => {
-    const scroll = new LocomotiveScroll({
-      lenisOptions: {
-        lerp: 0.075,
-        wheelMultiplier: 0.95,
-        touchMultiplier: 1.2,
-        smoothWheel: true,
-        autoResize: true,
-      },
-    });
+    let cancelled = false;
+    let scroll = null;
+
+    import("locomotive-scroll")
+      .then((module) => {
+        if (cancelled) return;
+
+        const LocomotiveScroll = module.default || module;
+
+        scroll = new LocomotiveScroll({
+          lenisOptions: {
+            lerp: 0.075,
+            wheelMultiplier: 0.95,
+            touchMultiplier: 1.2,
+            smoothWheel: true,
+            autoResize: true,
+          },
+        });
+      })
+      .catch(() => {});
 
     return () => {
-      scroll.destroy();
+      cancelled = true;
+
+      if (scroll) scroll.destroy();
     };
   }, []);
 

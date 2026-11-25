@@ -53,9 +53,16 @@
 /* =========================================================
    VIDEO
    The video starts hidden and fades in once its first frame
-   is ready (Home.jsx sets data-ready="true"). The video file
-   is requested after the page has loaded, so it no longer
-   competes with the hero text for bandwidth.
+   is ready. The fade is driven from Home.jsx with the Web
+   Animations API, and data-ready="true" is the final state.
+
+   Why not a CSS animation or transition: ScrollTrigger takes
+   the hero out of the DOM and puts it back on every refresh,
+   and that cancels any CSS animation / transition, so the
+   video blinked or popped. A Web Animations API animation
+   keeps running when its element is moved in the DOM.
+   The video file itself is requested after the page has
+   loaded, so it does not compete with the hero text.
    ========================================================= */
 
 .home-hero-video {
@@ -75,8 +82,8 @@
 }
 
 .home-hero-video[data-ready="true"] {
-  animation: heroVideoReveal 1.8s
-    cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 /* =========================================================
@@ -413,18 +420,6 @@
    ENTRANCE ANIMATIONS
    ========================================================= */
 
-@keyframes heroVideoReveal {
-  from {
-    opacity: 0;
-    transform: scale(1.1);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
 @keyframes scrollArrow {
   0%,
   100% {
@@ -465,13 +460,15 @@
 
 @media (max-width: 720px) {
   .home-hero {
-    min-height: clamp(560px, 82dvh, 720px);
+    min-height: clamp(560px, 82vh, 720px);
+    min-height: clamp(560px, 82svh, 720px);
     height: auto;
     overflow: hidden;
   }
 
   .home-about-layer {
-    min-height: 100dvh;
+    min-height: 100vh;
+    min-height: 100svh;
   }
 
   .home-hero-video {
@@ -482,7 +479,8 @@
 
   .home-hero-content {
     width: calc(100% - 36px);
-    min-height: clamp(560px, 82dvh, 720px);
+    min-height: clamp(560px, 82vh, 720px);
+    min-height: clamp(560px, 82svh, 720px);
     height: auto;
     padding: 92px 0 46px;
     transform: none;
@@ -661,6 +659,8 @@ body::-webkit-scrollbar,
 
   .home-hero-video {
     opacity: 1 !important;
+    transform: scale(1.05) !important;
+    transition: none !important;
   }
 
   .hero-line-inner,
