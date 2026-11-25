@@ -1,16 +1,56 @@
-
-import React, { useLayoutEffect, useRef } from "react";
+import React, {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import About from "./About";
-import Services from "./Services";
-import Work from "./Work";
 import "./Home.css";
+
+/*
+ * PERFORMANCE: About, Services and Work are below the fold, so they are
+ * loaded as separate chunks right after the hero has painted. This keeps
+ * the first JavaScript bundle small and lets the hero text appear sooner.
+ */
+const About = lazy(() => import("./About"));
+const Services = lazy(() => import("./Services"));
+const Work = lazy(() => import("./Work"));
+
+const HERO_VIDEO_SRC = "/videos/hero.mp4";
+const BELOW_FOLD_SECTIONS = 3;
 
 gsap.registerPlugin(ScrollTrigger);
 
 ScrollTrigger.config({ ignoreMobileResize: true });
+
+/*
+ * One shared, debounced ScrollTrigger refresh. Many things ask for a
+ * refresh at load time (fonts, video, lazy sections), so they are merged
+ * into a single refresh to avoid repeated forced reflows.
+ */
+let refreshTimer = 0;
+
+const requestScrollRefresh = () => {
+  window.clearTimeout(refreshTimer);
+
+  refreshTimer = window.setTimeout(() => {
+    refreshTimer = 0;
+    ScrollTrigger.refresh();
+  }, 150);
+};
+
+/* Refreshes ScrollTrigger once a lazy section has actually mounted. */
+const SectionReady = () => {
+  useEffect(() => {
+    requestScrollRefresh();
+  }, []);
+
+  return null;
+};
 
 const SplitChars = ({ text }) =>
   Array.from(text).map((char, index) => (
@@ -29,6 +69,9 @@ function Home() {
 
   const aboutRef = useRef(null);
 
+  /* How many below-the-fold sections are allowed to load (0 to 3). */
+  const [stage, setStage] = useState(0);
+
   const handleViewWork = (event) => {
     const target = document.getElementById("work");
 
@@ -42,6 +85,106 @@ function Home() {
     });
   };
 
+  /*
+   * LOAD BELOW-THE-FOLD SECTIONS
+   * After the page has loaded, sections are mounted one by one during
+   * idle time. Any user interaction loads all of them immediately.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    let handle = 0;
+    let usedIdle = false;
+    let current = 0;
+
+    const interactionEvents = [
+      "wheel",
+      "touchstart",
+      "pointerdown",
+      "keydown",
+      "scroll",
+    ];
+
+    const cancelHandle = () => {
+      if (!handle) return;
+
+      if (usedIdle && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(handle);
+      } else {
+        window.clearTimeout(handle);
+      }
+
+      handle = 0;
+    };
+
+    const whenIdle = (callback) => {
+      if ("requestIdleCallback" in window) {
+        usedIdle = true;
+        handle = window.requestIdleCallback(callback, {
+          timeout: 1500,
+        });
+      } else {
+        usedIdle = false;
+        handle = window.setTimeout(callback, 250);
+      }
+    };
+
+    const removeInteractionListeners = () => {
+      interactionEvents.forEach((name) =>
+        window.removeEventListener(name, handleInteraction)
+      );
+    };
+
+    const advance = () => {
+      handle = 0;
+
+      if (cancelled) return;
+
+      current += 1;
+      setStage(current);
+
+      if (current < BELOW_FOLD_SECTIONS) {
+        whenIdle(advance);
+      }
+    };
+
+    function handleInteraction() {
+      if (cancelled) return;
+
+      cancelHandle();
+      removeInteractionListeners();
+
+      current = BELOW_FOLD_SECTIONS;
+      setStage(BELOW_FOLD_SECTIONS);
+    }
+
+    const start = () => {
+      if (cancelled) return;
+
+      whenIdle(advance);
+    };
+
+    interactionEvents.forEach((name) =>
+      window.addEventListener(name, handleInteraction, {
+        passive: true,
+        once: true,
+      })
+    );
+
+    if (document.readyState === "complete") {
+      start();
+    } else {
+      window.addEventListener("load", start, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+
+      cancelHandle();
+      removeInteractionListeners();
+      window.removeEventListener("load", start);
+    };
+  }, []);
+
   useLayoutEffect(() => {
     const hero = heroRef.current;
     const content = contentRef.current;
@@ -50,30 +193,41 @@ function Home() {
     if (!hero || !content) return undefined;
 
     let cancelled = false;
-    let refreshFrame = 0;
     let introTimer = 0;
+    let pinFrame = 0;
+    let pinTimer = 0;
+    let videoTimer = 0;
+    let heroRect = null;
+    let pinCtx = null;
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    /*
-     * Combine refresh requests into one animation frame.
-     */
     const scheduleRefresh = () => {
-      if (cancelled || refreshFrame) return;
+      if (cancelled) return;
 
-      refreshFrame = requestAnimationFrame(() => {
-        refreshFrame = 0;
+      requestScrollRefresh();
+    };
 
-        if (!cancelled) {
-          ScrollTrigger.refresh();
-        }
-      });
+    /*
+     * The hero rectangle is measured once and reused, instead of being
+     * measured on every mouse move (this removes forced reflows).
+     */
+    const readHeroRect = () => {
+      if (!heroRect) {
+        heroRect = hero.getBoundingClientRect();
+      }
+
+      return heroRect;
+    };
+
+    const invalidateHeroRect = () => {
+      heroRect = null;
     };
 
     const handleMouseMove = (event) => {
-      const rect = hero.getBoundingClientRect();
+      const rect = readHeroRect();
 
       if (!rect.width || !rect.height) return;
 
@@ -88,6 +242,8 @@ function Home() {
     };
 
     const handleMouseLeave = () => {
+      heroRect = null;
+
       content.style.setProperty("--mouse-x", "0px");
       content.style.setProperty("--mouse-y", "0px");
     };
@@ -95,8 +251,16 @@ function Home() {
     const createMagneticButton = (button) => {
       if (!button) return () => {};
 
+      let rect = null;
+
+      const handleEnter = () => {
+        rect = button.getBoundingClientRect();
+      };
+
       const handleMove = (event) => {
-        const rect = button.getBoundingClientRect();
+        if (!rect) {
+          rect = button.getBoundingClientRect();
+        }
 
         const x = event.clientX - (rect.left + rect.width / 2);
         const y = event.clientY - (rect.top + rect.height / 2);
@@ -114,14 +278,18 @@ function Home() {
       };
 
       const handleLeave = () => {
+        rect = null;
+
         button.style.setProperty("--magnetic-x", "0px");
         button.style.setProperty("--magnetic-y", "0px");
       };
 
+      button.addEventListener("mouseenter", handleEnter);
       button.addEventListener("mousemove", handleMove);
       button.addEventListener("mouseleave", handleLeave);
 
       return () => {
+        button.removeEventListener("mouseenter", handleEnter);
         button.removeEventListener("mousemove", handleMove);
         button.removeEventListener("mouseleave", handleLeave);
         button.style.setProperty("--magnetic-x", "0px");
@@ -134,6 +302,9 @@ function Home() {
     });
 
     hero.addEventListener("mouseleave", handleMouseLeave);
+    window.addEventListener("resize", invalidateHeroRect, {
+      passive: true,
+    });
 
     const cleanupPrimary = createMagneticButton(
       primaryButtonRef.current
@@ -143,11 +314,28 @@ function Home() {
       secondaryButtonRef.current
     );
 
+    /*
+     * HERO VIDEO
+     * The video starts downloading only after the page has loaded, so it
+     * does not compete with the JavaScript and CSS that the hero text
+     * needs. It fades in as soon as the first frame is ready.
+     */
     const handleVideoMetadata = () => scheduleRefresh();
+
+    const handleVideoReady = () => {
+      if (video) video.dataset.ready = "true";
+    };
+
+    const startVideo = () => {
+      if (cancelled || !video || video.getAttribute("src")) return;
+
+      video.src = HERO_VIDEO_SRC;
+      video.play().catch(() => {});
+    };
 
     if (video) {
       video.addEventListener("loadedmetadata", handleVideoMetadata);
-      video.play().catch(() => {});
+      video.addEventListener("loadeddata", handleVideoReady);
     }
 
     /*
@@ -280,65 +468,93 @@ function Home() {
 
     /*
      * ABOUT PIN / REVEAL
-     * Original pinned hero effect remains unchanged.
+     * The About layer is moved off-screen immediately (before the first
+     * paint, so nothing flashes), exactly as before. The ScrollTrigger
+     * itself is created right after the first paint so it no longer
+     * delays the hero text.
      */
-    const ctx = gsap.context(() => {
+    const setCtx = gsap.context(() => {
       if (!aboutRef.current) return;
 
       gsap.set(aboutRef.current, {
         yPercent: 100,
       });
-
-      gsap.to(aboutRef.current, {
-        yPercent: 0,
-        ease: "none",
-        force3D: true,
-        scrollTrigger: {
-          trigger: hero,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-          pin: hero,
-          pinSpacing: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
     }, hero);
 
-    scheduleRefresh();
+    const setupPin = () => {
+      pinTimer = 0;
 
-    const handleWindowLoad = () => scheduleRefresh();
+      const about = aboutRef.current;
 
-    if (document.readyState !== "complete") {
+      if (cancelled || !about) return;
+
+      pinCtx = gsap.context(() => {
+        gsap.to(about, {
+          yPercent: 0,
+          ease: "none",
+          force3D: true,
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "bottom top",
+            scrub: 1,
+            pin: hero,
+            pinSpacing: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+      }, hero);
+
+      scheduleRefresh();
+    };
+
+    pinFrame = requestAnimationFrame(() => {
+      pinFrame = 0;
+      pinTimer = window.setTimeout(setupPin, 0);
+    });
+
+    const handleWindowLoad = () => {
+      window.clearTimeout(videoTimer);
+      videoTimer = window.setTimeout(startVideo, 0);
+      scheduleRefresh();
+    };
+
+    if (document.readyState === "complete") {
+      videoTimer = window.setTimeout(startVideo, 0);
+    } else {
       window.addEventListener("load", handleWindowLoad, {
         once: true,
       });
-    }
 
-    if (video?.readyState >= 1) {
-      scheduleRefresh();
+      /* Safety net: never leave the hero without a video. */
+      videoTimer = window.setTimeout(startVideo, 4000);
     }
 
     return () => {
       cancelled = true;
 
-      if (refreshFrame) {
-        cancelAnimationFrame(refreshFrame);
+      if (pinFrame) {
+        cancelAnimationFrame(pinFrame);
       }
 
-      if (introTimer) {
-        window.clearTimeout(introTimer);
-      }
+      window.clearTimeout(pinTimer);
+      window.clearTimeout(videoTimer);
+      window.clearTimeout(introTimer);
+      window.clearTimeout(refreshTimer);
+      refreshTimer = 0;
 
       hero.removeEventListener("mousemove", handleMouseMove);
       hero.removeEventListener("mouseleave", handleMouseLeave);
+      window.removeEventListener("resize", invalidateHeroRect);
 
       if (video) {
         video.removeEventListener(
           "loadedmetadata",
           handleVideoMetadata
         );
+
+        video.removeEventListener("loadeddata", handleVideoReady);
       }
 
       window.removeEventListener("load", handleWindowLoad);
@@ -347,7 +563,10 @@ function Home() {
       cleanupSecondary();
 
       introCtx.revert();
-      ctx.revert();
+
+      if (pinCtx) pinCtx.revert();
+
+      setCtx.revert();
     };
   }, []);
 
@@ -358,7 +577,6 @@ function Home() {
         <video
           ref={videoRef}
           className="home-hero-video"
-          src="/videos/hero.mp4"
           autoPlay
           muted
           loop
@@ -458,12 +676,22 @@ function Home() {
         ref={aboutRef}
         className="home-about-layer"
       >
-        <About />
+        {stage >= 1 && (
+          <Suspense fallback={null}>
+            <About />
+            <SectionReady />
+          </Suspense>
+        )}
       </section>
 
       {/* SERVICES SECTION */}
       <section className="home-services-layer">
-        <Services />
+        {stage >= 2 && (
+          <Suspense fallback={null}>
+            <Services />
+            <SectionReady />
+          </Suspense>
+        )}
       </section>
 
       {/* WORK SECTION */}
@@ -477,7 +705,12 @@ function Home() {
           background: "#DFDDDC",
         }}
       >
-        <Work />
+        {stage >= 3 && (
+          <Suspense fallback={null}>
+            <Work />
+            <SectionReady />
+          </Suspense>
+        )}
       </section>
     </main>
   );
