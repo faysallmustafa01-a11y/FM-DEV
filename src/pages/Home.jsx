@@ -19,19 +19,6 @@ const SplitChars = ({ text }) =>
     </span>
   ));
 
-const SplitWords = ({ text }) => {
-  const words = text.split(" ");
-
-  return words.map((word, index) => (
-    <React.Fragment key={`${word}-${index}`}>
-      <span className="hero-word-mask">
-        <span className="hero-word">{word}</span>
-      </span>
-      {index < words.length - 1 ? " " : null}
-    </React.Fragment>
-  ));
-};
-
 function Home() {
   const heroRef = useRef(null);
   const contentRef = useRef(null);
@@ -64,6 +51,7 @@ function Home() {
 
     let cancelled = false;
     let refreshFrame = 0;
+    let introTimer = 0;
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -71,7 +59,6 @@ function Home() {
 
     /*
      * Combine refresh requests into one animation frame.
-     * Fonts, video metadata and window load can all request a refresh.
      */
     const scheduleRefresh = () => {
       if (cancelled || refreshFrame) return;
@@ -145,6 +132,7 @@ function Home() {
     hero.addEventListener("mousemove", handleMouseMove, {
       passive: true,
     });
+
     hero.addEventListener("mouseleave", handleMouseLeave);
 
     const cleanupPrimary = createMagneticButton(
@@ -164,7 +152,9 @@ function Home() {
 
     /*
      * HERO INTRO ANIMATION
-     * Existing text and button reveal are preserved.
+     * Heading, eyebrow, top information and buttons
+     * retain their original animations.
+     * Description is intentionally not animated.
      */
     const introCtx = gsap.context(() => {
       if (reduceMotion) return;
@@ -183,7 +173,6 @@ function Home() {
         hero
       );
 
-      const words = gsap.utils.toArray(".hero-word", hero);
       const actions = hero.querySelector(".home-hero-actions");
       const bottom = hero.querySelector(".home-hero-bottom");
 
@@ -201,8 +190,6 @@ function Home() {
         rotate: 8,
         transformOrigin: "0% 100%",
       });
-
-      gsap.set(words, { yPercent: 118 });
 
       gsap.set([actions, bottom], {
         autoAlpha: 0,
@@ -251,16 +238,6 @@ function Home() {
           0.72
         )
         .to(
-          words,
-          {
-            yPercent: 0,
-            duration: 1,
-            stagger: 0.03,
-            ease: "power4.out",
-          },
-          0.15
-        )
-        .to(
           actions,
           {
             autoAlpha: 1,
@@ -281,16 +258,29 @@ function Home() {
           1.4
         );
 
-      /*
-       * Start the intro immediately instead of waiting for fonts.
-       * This reduces the initial render delay of the hero description.
-       */
-      intro.play();
+      const startIntro = () => {
+        if (!cancelled) intro.play();
+      };
+
+      if (document.fonts?.ready) {
+        introTimer = window.setTimeout(startIntro, 1200);
+
+        document.fonts.ready.then(() => {
+          if (cancelled) return;
+
+          window.clearTimeout(introTimer);
+          introTimer = 0;
+          startIntro();
+          scheduleRefresh();
+        });
+      } else {
+        startIntro();
+      }
     }, hero);
 
     /*
      * ABOUT PIN / REVEAL
-     * The original pinned hero effect remains in place.
+     * Original pinned hero effect remains unchanged.
      */
     const ctx = gsap.context(() => {
       if (!aboutRef.current) return;
@@ -318,18 +308,6 @@ function Home() {
 
     scheduleRefresh();
 
-    /*
-     * Fonts are still monitored for layout refresh,
-     * but they no longer delay the hero intro animation.
-     */
-    if (document.fonts?.ready) {
-      document.fonts.ready.then(() => {
-        if (!cancelled) {
-          scheduleRefresh();
-        }
-      });
-    }
-
     const handleWindowLoad = () => scheduleRefresh();
 
     if (document.readyState !== "complete") {
@@ -347,6 +325,10 @@ function Home() {
 
       if (refreshFrame) {
         cancelAnimationFrame(refreshFrame);
+      }
+
+      if (introTimer) {
+        window.clearTimeout(introTimer);
       }
 
       hero.removeEventListener("mousemove", handleMouseMove);
@@ -432,7 +414,8 @@ function Home() {
             </h1>
 
             <p className="home-hero-description">
-              <SplitWords text="Building modern digital experiences, intelligent products, and scalable full-stack solutions." />
+              Building modern digital experiences, intelligent
+              products, and scalable full-stack solutions.
             </p>
 
             <div className="home-hero-actions">
